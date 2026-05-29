@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    
+    <meta name="description" content="بات نرو ایکس - قوی ترین و بهترین و امنیتی ترین بات مدیریت گروه روبیکا است">
+    <meta name="keywords" content="مدیریت گروه, بات نروایکس, بات مدیریت گروه, بات سرگرمی, NeroX, بات ضد اسپم, بات امنیتی, بات ضد لینک و آیدی">
+    <meta name="author" content="Media_Blu98">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://rubika.ir/Media_Blu98">
+
+    <meta property="og:title" content="بات نرو ایکس | هوشمند ترین بات روبیکا">
+    <meta property="og:description" content="دیگه نیاز نیست خودت گروهتو مدیریت کنی, چون که بات نرو ایکس اینجاست تا مسئولیت مدیریت گروهو به عهده بگیره.">
+    <meta property="og:image" content="https://s6.uplod.ir/i/01201/8cpulujrjfxy.png">
+    <meta property="og:url" content="https://rubika.ir/NeroXBot">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="NeroX Bot">
+
+    <title>بات نرو ایکس | NeroX Bot</title>
+    
+    <style>
+        /* --- تنظیمات پایه و فونت --- */
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #6366f1;       /* رنگ اصلی بنفش */
+            --primary-dark: #4f46e5;
+            --accent: #8b5cf6;        /* رنگ مکمل */
+            --bg-body: #f8fafc;       /* پس‌زمینه کلی */
+            --bg-card: #ffffff;
+            --text-main: #0f172a;     /* متن تیره */
+            --text-muted: #64748b;    /* متن خاکستری */
+            --success: #10b981;
+            
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+            --shadow-glow: 0 20px 25px -5px rgba(99, 102, 241, 0.25);
+            
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --container-width: 1200px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        /* --- کانتینر ریسپانسیو --- */
+        .container {
+            width: 100%;
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- هدر --- */
+        header {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 16px 0;
+        }
+        
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .cta-btn-sm {
+            background: var(--text-main);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .cta-btn-sm:hover {
+            background: var(--primary);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* --- بخش اصلی (Hero) --- */
+        .hero {
+            padding: 60px 0 80px;
+            display: flex;
+            align-items: center;
+            min-height: auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, rgba(255,255,255,0) 70%);
+            z-index: -1;
+        }
+        
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .hero-text h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.3;
+            margin-bottom: 20px;
+            color: var(--text-main);
+        }
+        
+        .hero-text h1 span {
+            color: var(--primary);
+            position: relative;
+            white-space: nowrap;
+        }
+        
+        .hero-text p {
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            color: var(--text-muted);
+            margin-bottom: 35px;
+            max-width: 90%;
+        }
+        
+        .buttons-wrapper {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 32px;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            box-shadow: var(--shadow-glow);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5);
+        }
+        
+        .btn-outline {
+            background: white;
+            color: var(--text-main);
+            border: 2px solid #e2e8f0;
+        }
+        
+        .btn-outline:hover {
+            border-color: var(--text-main);
+            background: var(--text-main);
+            color: white;
+        }
+
+        .hero-image {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .hero-image img {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border-radius: 30px;
+            box-shadow: var(--shadow-glow);
+            border: 1px solid rgba(255,255,255,0.8);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* --- نوار آمار (Stats) --- */
+        .stats-bar {
+            background: white;
+            border-top: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 30px 0;
+            margin: 20px 0 60px;
+        }
+
+        .stats-grid {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+            text-align: center;
+        }
+
+        .stat-item h4 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-item p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* --- عناوین بخش‌ها --- */
+        .section-padding {
+            padding: 80px 0;
+        }
+        
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 50px;
+            padding: 0 15px;
+        }
+        
+        .section-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+        
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* --- ویژگی‌ها (Grid) --- */
+        .grid-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border: 1px solid #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: #e0e7ff;
+        }
+        
+        .icon-box {
+            width: 56px;
+            height: 56px;
+            background: #eef2ff;
+            color: var(--primary);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+        }
+        
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* --- نظرات کاربران (Testimonials) --- */
+        .testimonials {
+            background: #1e1b4b;
+            color: white;
+            padding: 80px 0;
+            margin-top: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .testi-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .user-stars {
+            color: #fbbf24;
+            font-size: 0.9rem;
+        }
+
+        /* --- آموزش نصب (Steps) --- */
+        .install-guide {
+            padding: 80px 0;
+        }
+
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            counter-reset: steps;
+        }
+
+        .step-row {
+            background: white;
+            padding: 25px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            border-right: 4px solid var(--primary);
+        }
+
+        .step-row::before {
+            counter-increment: steps;
+            content: counter(steps);
+            font-size: 3rem;
+            font-weight: 900;
+            color: #f1f5f9;
+            position: absolute;
+            left: -10px;
+            bottom: -15px;
+            z-index: 0;
+        }
+
+        .step-content {
+            z-index: 1;
+        }
+
+        .step-content h3 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        /* --- سوالات متداول (FAQ) --- */
+        .faq-section {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        details {
+            background: white;
+            margin-bottom: 15px;
+            border-radius: var(--radius-md);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        details[open] {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        summary {
+            padding: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary::after {
+            content: '+';
+            font-size: 1.5rem;
+            color: var(--primary);
+            transition: transform 0.3s;
+        }
+
+        details[open] summary::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-body {
+            padding: 0 20px 20px;
+            color: var(--text-muted);
+            border-top: 1px solid #f1f5f9;
+            padding-top: 15px;
+        }
+
+        /* --- CTA Footer --- */
+        .cta-box {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: var(--radius-lg);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+            margin: 60px auto 0;
+            box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.4);
+        }
+
+        /* --- Footer --- */
+        footer {
+            margin-top: 60px;
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* --- انیمیشن --- */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* =========================================
+           مدیا کوئری‌ها (بخش حیاتی ریسپانسیو)
+           ========================================= */
+        
+        @media (max-width: 992px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 50px;
+            }
+
+            .hero-text p {
+                margin: 0 auto 30px;
+            }
+
+            .buttons-wrapper {
+                justify-content: center;
+            }
+
+            .hero-image {
+                order: -1;
+                margin-bottom: 20px;
+            }
+            
+            .hero-image img {
+                max-width: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding-top: 40px;
+            }
+
+            .stats-grid {
+                gap: 20px;
+            }
+
+            .stat-item {
+                flex: 1 1 40%;
+            }
+
+            .buttons-wrapper {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo span {
+                display: none;
+            }
+            
+            .section-header h2 {
+                font-size: 1.8rem;
+            }
+
+            .stat-item {
+                flex: 1 1 100%;
+                padding: 10px 0;
+                border-bottom: 1px solid #f8fafc;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <nav class="nav-content">
+                <div class="logo">
+                    🤖 بات نرو ایکس
+                </div>
+                <a href="https://rubika.ir/NeroXBot" class="cta-btn-sm" target="_blank">+ اضافه کردن بات به گروه</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-grid">
+                    <div class="hero-text">
+                        <h1>هوشمند ترین بات مدیریت روبیکا<br><span>همیشه روشن و بدون قطعی</span></h1>
+                        <p>اصلا نگران فرستاده شدن تبلیغات و لینک و آیدی و اینجور چیزا نباش! هوش مصنوعی بات نرو ایکس اینجاس تا مشکل تورو حل کنه.</p>
+                        <div class="buttons-wrapper">
+                            <a href="https://rubika.ir/NeroXBot" class="btn btn-primary" target="_blank">افزودن به گروه</a>
+                            <a href="#features" class="btn btn-outline">مشاهده امکانات</a>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <img src="https://s6.uplod.ir/i/01201/8cpulujrjfxy.png" alt="محیط کاربری بات نرو ایکس" loading="lazy">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats-bar">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <h4>+500</h4>
+                        <p>گروه فعال</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>+500</h4>
+                        <p>مالک گروه راضی</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>%99.9</h4>
+                        <p>روشن بودن بدون قطعی</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>۲۴/۷</h4>
+                        <p>پشتیبانی آنلاین</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-padding" id="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2>چرا مالکا بات نرو ایکس رو انتخاب میکنن؟</h2>
+                    <p>چند بات هوشمند در یک بات</p>
+                </div>
+                
+                <div class="grid-features">
+                    <div class="card">
+                        <div class="icon-box">🛡️</div>
+                        <h3>ضد تبلیغ هوشمند</h3>
+                        <p>شناسایی هوشمند لینک و آیدی به صورت سرعت نور.</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="icon-box">⚡</div>
+                        <h3>ضد اسپم هوشمند</h3>
+                        <p>جلوگیری از پیام های شدید و تکراری برای ارامش گروه.</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="icon-box">🤖</div>
+                        <h3>هوش مصنوعی چت بات</h3>
+                        <p>قابلیت هوش مصنوعی چت بات برای پاسخ به سوالات مردم.</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="icon-box">🎮</div>
+                        <h3>سرگرمی</h3>
+                        <p>انواع سرگرمی های گروهی برای خوش گذرونی.</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="icon-box">⚙️</div>
+                        <h3>پنل شیشه ای</h3>
+                        <p>بدون نیاز به دستورات متنی و استفاده از دکمه های شیشه ای.</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="icon-box">🔒</div>
+                        <h3>قفل های زمانی</h3>
+                        <p>تنظیم ساعت باز و بسته بودن گروه و دستورات دیگر.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="testimonials">
+            <div class="container">
+                <div class="section-header">
+                    <h2 style="color: white;">کاربران چه می‌گویند؟</h2>
+                    <p style="color: #cbd5e1;">تجربه مدیران گروه‌های بزرگ روبیکا</p>
+                </div>
+                <div class="testimonials-grid">
+                    <div class="testi-card">
+                        <div class="user-info">
+                            <div class="user-avatar">A</div>
+                            <div>
+                                <h4 style="margin:0;">ARMIN GAME</h4>
+                                <div class="user-stars">★★★★★</div>
+                            </div>
+                        </div>
+                        <p>"این بهترین رباتیه که تا الان استفاده کردم و اصلا هیچ قطعی نداره و کلا عالیه."</p>
+                    </div>
+                    <div class="testi-card">
+                        <div class="user-info">
+                            <div class="user-avatar" style="background: linear-gradient(45deg, #002fff, #0077ff);">س</div>
+                            <div>
+                                <h4 style="margin:0;">Windows edit</h4>
+                                <div class="user-stars">★★★★★</div>
+                            </div>
+                        </div>
+                        <p>"بخش هوش مصنوعیش از همجاش باحال تر بود, واقعا هوش مصنوعی هوشمندی داره این بات."</p>
+                    </div>
+                    <div class="testi-card">
+                        <div class="user-info">
+                            <div class="user-avatar" style="background: linear-gradient(45deg, #ff0000, #410000);">م</div>
+                            <div>
+                                <h4 style="margin:0;">ARIASONIC1991</h4>
+                                <div class="user-stars">★★★★★</div>
+                            </div>
+                        </div>
+                        <p>"پشتیبانیشون محشره و اینکه واقعا پنل شیشه ای کارو راحت تر کرده."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="install-guide">
+            <div class="container">
+                <div class="section-header">
+                    <h2>آموزش راه اندازی بات</h2>
+                    <p>زیر 1 دقیقه گروهتون رو ایمن کنید!</p>
+                </div>
+                
+                <div class="steps-container">
+                    <div class="step-row">
+                        <div class="step-content">
+                            <h3>۱. افزودن بات به گروه</h3>
+                            <p>اول از همه باتو به گروهتون اضافه میکنید.</p>
+                        </div>
+                    </div>
+                    <div class="step-row">
+                        <div class="step-content">
+                            <h3>۲. ادمین کردن بات</h3>
+                            <p>بات را در گروه ادمین میکنید و تمامی دسترسی هارو بهش میدید.</p>
+                        </div>
+                    </div>
+                    <div class="step-row">
+                        <div class="step-content">
+                            <h3>۳. فعال سازی بات</h3>
+                            <p>برای فعال کردن بات دستور "نصب رو بفرستید".</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-padding">
+            <div class="container">
+                <div class="section-header">
+                    <h2>سوالات متداول</h2>
+                </div>
+                <div class="faq-section">
+                    <details>
+                        <summary>این بات رایگانه؟</summary>
+                        <div class="faq-body">
+                            بله, این بات کاملا رایگانه و هیچ سرویس پولی نداره.
+                        </div>
+                    </details>
+                    <details>
+                        <summary>چطوری باتو ادمین کنم؟</summary>
+                        <div class="faq-body">
+                            داخل تنظیمات گروه وارد بخش مدیران بشید و بات رو ادمین کنید.
+                        </div>
+                    </details>
+                    <details>
+                        <summary>این بات قطعی داره؟</summary>
+                        <div class="faq-body">
+                            نه, هیچ قطعی نداره مگر اینکه بات بخواد آپدیت بده.
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <div class="container">
+            <div class="cta-box">
+                <h2>همین الان امنیت گروهتو ببر بالاتر!</h2>
+                <p style="margin: 20px 0 30px; opacity: 0.9;">به جمع نرو آرمیا بپیوند</p>
+                <a href="https://rubika.ir/NeroXBot" class="btn btn-outline" style="border:none; color: var(--primary);">نصب رایگان ربات</a>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 1405 بات نرو ایکس | تمامی حقوق محفوظ است.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
