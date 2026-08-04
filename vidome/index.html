@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ویدیوم | سرویس رسانه ویدیویی</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">▶</span>
+        <span class="logo-text">ویدیوم</span>
+      </a>
+
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="جستجوی ویدیو..." autocomplete="off">
+        <button id="searchBtn" aria-label="جستجو">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="nav" id="categoryNav">
+        <a href="#" class="nav-link active" data-category="all">همه</a>
+        <a href="#" class="nav-link" data-category="music">موسیقی</a>
+        <a href="#" class="nav-link" data-category="tech">تکنولوژی</a>
+        <a href="#" class="nav-link" data-category="nature">طبیعت</a>
+        <a href="#" class="nav-link" data-category="sport">ورزش</a>
+        <a href="#" class="nav-link" data-category="other">سایر</a>
+      </nav>
+
+      <div class="auth-area" id="authArea">
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1>ویدیوم</h1>
+        <p id="heroText">ویدیوهای خود را آپلود کنید و تماشا کنید</p>
+      </div>
+    </div>
+  </section>
+
+  <main class="main">
+    <div class="container">
+      <div class="section-header">
+        <h2 id="sectionTitle">ویدیوها</h2>
+        <div class="header-actions">
+          <span id="videoCount" class="video-count"></span>
+          <button class="btn btn-primary" id="uploadBtn" hidden>+ آپلود ویدیو</button>
+        </div>
+      </div>
+
+      <div class="video-grid" id="videoGrid"></div>
+
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon"><img src="https://www.emojiall.com/images/240/telegram/telemoji-november-2023/1f3ac.gif" alt="🎬" class="emoji-img" width="48" height="48" style="vertical-align:middle;display:inline-block;"></div>
+        <h3>هنوز ویدیویی وجود ندارد</h3>
+        <p id="emptyText">برای شروع، وارد حساب کاربری شوید و ویدیو آپلود کنید.</p>
+      </div>
+
+      <div class="no-results" id="noResults" hidden>
+        <p>ویدیویی یافت نشد <img src="https://www.emojiall.com/images/240/telegram/telemoji-november-2023/1f615.gif" alt="😕" class="emoji-img" width="20" height="20" style="vertical-align:middle;display:inline-block;"></p>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal" id="authModal" hidden>
+    <div class="modal-overlay" data-close="auth"></div>
+    <div class="modal-content modal-sm">
+      <button class="modal-close" data-close="auth">&times;</button>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">ورود</button>
+        <button class="auth-tab" data-tab="register">ثبت‌نام</button>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label for="loginUser">نام کاربری</label>
+          <input type="text" id="loginUser" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="loginPass">رمز عبور</label>
+          <input type="password" id="loginPass" required autocomplete="current-password">
+        </div>
+        <p class="form-error" id="loginError" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block">ورود</button>
+      </form>
+
+      <form id="registerForm" class="auth-form" hidden>
+        <div class="form-group">
+          <label for="regUser">نام کاربری</label>
+          <input type="text" id="regUser" required minlength="3" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="regPass">رمز عبور</label>
+          <input type="password" id="regPass" required minlength="4" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="regPass2">تکرار رمز عبور</label>
+          <input type="password" id="regPass2" required minlength="4" autocomplete="new-password">
+        </div>
+        <p class="form-error" id="regError" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block">ثبت‌نام</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="uploadModal" hidden>
+    <div class="modal-overlay" data-close="upload"></div>
+    <div class="modal-content">
+      <button class="modal-close" data-close="upload">&times;</button>
+      <h3 class="modal-heading">آپلود ویدیو جدید</h3>
+      <form id="uploadForm" class="upload-form">
+        <div class="form-group">
+          <label for="videoTitle">عنوان ویدیو</label>
+          <input type="text" id="videoTitle" required maxlength="100" placeholder="عنوان را وارد کنید">
+        </div>
+        <div class="form-group">
+          <label for="videoCategory">دسته‌بندی</label>
+          <select id="videoCategory" required>
+            <option value="music">موسیقی</option>
+            <option value="tech">تکنولوژی</option>
+            <option value="nature">طبیعت</option>
+            <option value="sport">ورزش</option>
+            <option value="other" selected>سایر</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="videoDesc">توضیحات (اختیاری)</label>
+          <textarea id="videoDesc" rows="3" maxlength="300" placeholder="توضیح کوتاه..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="videoFile">فایل ویدیو</label>
+          <div class="file-drop" id="fileDrop">
+            <input type="file" id="videoFile" accept="video/*" required>
+            <div class="file-drop-text" id="fileDropText">
+              <span><img src="https://www.emojiall.com/images/240/telegram/telemoji-november-2023/1f4c1.gif" alt="📁" class="emoji-img" width="48" height="48" style="vertical-align:middle;display:inline-block;"></span>
+              <p>فایل را اینجا رها کنید یا کلیک کنید</p>
+              <small>حداکثر حدود ۵۰ مگابایت (بسته به مرورگر)</small>
+            </div>
+            <div class="file-selected" id="fileSelected" hidden>
+              <span id="fileName"></span>
+              <button type="button" id="clearFile">×</button>
+            </div>
+          </div>
+        </div>
+        <p class="form-error" id="uploadError" hidden></p>
+        <div class="upload-progress" id="uploadProgress" hidden>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <span id="progressText">در حال پردازش...</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="submitUpload">آپلود ویدیو</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="videoModal" hidden>
+    <div class="modal-overlay" data-close="video"></div>
+    <div class="modal-content">
+      <button class="modal-close" data-close="video">&times;</button>
+      <div class="modal-player">
+        <video id="modalVideo" controls playsinline></video>
+      </div>
+      <div class="modal-info">
+        <h3 id="modalTitle"></h3>
+        <div class="modal-meta">
+          <span id="modalOwner"></span>
+          <span id="modalCategory"></span>
+          <span id="modalDate"></span>
+        </div>
+        <p id="modalDesc"></p>
+        <button class="btn btn-danger btn-sm" id="deleteVideoBtn" hidden>حذف این ویدیو</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>ساخته شده با <img src="https://www.emojiall.com/images/240/telegram/telemoji-november-2023/2764-fe0f.gif" alt="♥" class="emoji-img" width="20" height="20" style="vertical-align:middle;display:inline-block;"> و <img src="https://www.emojiall.com/images/240/telegram/telemoji-november-2023/2615.gif" alt="☕" class="emoji-img" width="20" height="20" style="vertical-align:middle;display:inline-block;"> توسط Media_Blu98</p>
+      <p class="footer-note">خواهشا از کدای سایت اسکی نرید <img src="https://www.emojiall.com/images/240/telegram/telemoji-november-2023/2764-fe0f.gif" alt="♥" class="emoji-img" width="20" height="20" style="vertical-align:middle;display:inline-block;"></p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
