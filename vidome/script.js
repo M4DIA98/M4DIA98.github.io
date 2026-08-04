@@ -1,9 +1,3 @@
-const DB_NAME = 'VidomeDB';
-const DB_VERSION = 1;
-const VIDEO_STORE = 'videos';
-const USERS_KEY = 'vm_users';
-const SESSION_KEY = 'vm_session';
-
 const categoryNames = {
   music: 'موسیقی',
   tech: 'تکنولوژی',
@@ -12,8 +6,12 @@ const categoryNames = {
   other: 'سایر'
 };
 
-let db = null;
-let currentUser = null;
+const EMAIL_DOMAIN = '@vidome.local'; // برای تبدیل نام کاربری به ایمیل جهت Supabase Auth
+const MAX_FILE_SIZE = 80 * 1024 * 1024; // ۸۰ مگابایت
+const BUCKET = 'videos';
+
+let currentUser = null; // نام کاربری نمایشی
+let currentUid = null;
 let allVideos = [];
 let currentCategory = 'all';
 let currentSearch = '';
@@ -35,90 +33,43 @@ const authModal = document.getElementById('authModal');
 const uploadModal = document.getElementById('uploadModal');
 const videoModal = document.getElementById('videoModal');
 
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (e) => {
-      const database = e.target.result;
-      if (!database.objectStoreNames.contains(VIDEO_STORE)) {
-        const store = database.createObjectStore(VIDEO_STORE, { keyPath: 'id' });
-        store.createIndex('owner', 'owner', { unique: false });
-        store.createIndex('category', 'category', { unique: false });
-      }
-    };
-    request.onsuccess = (e) => {
-      db = e.target.result;
-      resolve(db);
-    };
-    request.onerror = () => reject(request.error);
-  });
+function usernameToEmail(username) {
+  return username.toLowerCase() + EMAIL_DOMAIN;
 }
 
-function saveVideoToDB(videoData) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(VIDEO_STORE, 'readwrite');
-    const store = tx.objectStore(VIDEO_STORE);
-    const req = store.put(videoData);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  });
+function friendlyAuthError(msg) {
+  if (!msg) return 'خطایی رخ داد. دوباره تلاش کنید.';
+  if (msg.includes('already registered')) return 'این نام کاربری قبلاً ثبت شده است.';
+  if (msg.includes('Password should be at least')) return 'رمز عبور حداقل باید ۶ کاراکتر باشد.';
+  if (msg.includes('Invalid login credentials')) return 'نام کاربری یا رمز عبور اشتباه است.';
+  if (msg.includes('Email not confirmed')) return 'ثبت‌نام هنوز تأیید نشده. تنظیمات «Confirm email» را در Supabase خاموش کنید.';
+  return msg;
 }
 
-function getAllVideosFromDB() {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(VIDEO_STORE, 'readonly');
-    const store = tx.objectStore(VIDEO_STORE);
-    const req = store.getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-function deleteVideoFromDB(id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(VIDEO_STORE, 'readwrite');
-    const store = tx.objectStore(VIDEO_STORE);
-    const req = store.delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  });
-}
-
-function getUsers() {
-  try {
-    return JSON.parse(localStorage.getItem(USERS_KEY)) || {};
-  } catch {
-    return {};
-  }
-}
-
-function saveUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-function getSession() {
-  return localStorage.getItem(SESSION_KEY);
-}
-
-function setSession(username) {
-  if (username) localStorage.setItem(SESSION_KEY, username);
-  else localStorage.removeItem(SESSION_KEY);
-}
-
-function register(username, password) {
-  const users = getUsers();
-  if (users[username]) return { ok: false, msg: 'این نام کاربری قبلاً ثبت شده است.' };
+async function register(username, password) {
   if (username.length < 3) return { ok: false, msg: 'نام کاربری حداقل ۳ کاراکتر باشد.' };
-  if (password.length < 4) return { ok: false, msg: 'رمز عبور حداقل ۴ کاراکتر باشد.' };
-  users[username] = { password, createdAt: Date.now() };
-  saveUsers(users);
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) return { ok: false, msg: 'نام کاربری فقط می‌تواند شامل حروف/اعداد انگلیسی و _ باشد.' };
+  if (password.length < 6) return { ok: false, msg: 'رمز عبور حداقل ۶ کاراکتر باشد.' };
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: usernameToEmail(username),
+    password,
+    options: { data: { username } }
+  });
+
+  if (error) return { ok: false, msg: friendlyAuthError(error.message) };
+  if (!data.session) {
+    return { ok: false, msg: 'ثبت‌نام انجام شد ولی ورود خودکار انجام نشد. لطفاً «Confirm email» را در تنظیمات Supabase Auth خاموش کنید (README.md را ببینید).' };
+  }
   return { ok: true };
 }
 
-function login(username, password) {
-  const users = getUsers();
-  if (!users[username]) return { ok: false, msg: 'کاربری با این نام یافت نشد.' };
-  if (users[username].password !== password) return { ok: false, msg: 'رمز عبور اشتباه است.' };
+async function login(username, password) {
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email: usernameToEmail(username),
+    password
+  });
+  if (error) return { ok: false, msg: friendlyAuthError(error.message) };
   return { ok: true };
 }
 
@@ -133,7 +84,7 @@ function updateAuthUI() {
     `;
     uploadBtn.hidden = false;
     heroText.textContent = `سلام ${currentUser}! ویدیوهای خود را آپلود کنید`;
-    emptyText.textContent = 'روی دکمه «آپلود ویدیو» کلیک کنید و اولین ویدیوی خود را اضافه کنید.';
+    emptyText.textContent = 'روی دکمه «آپلود ویدیو» کلیک کنید و اولین ویدیوی این سایت را اضافه کنید.';
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
   } else {
     authArea.innerHTML = `
@@ -149,10 +100,7 @@ function updateAuthUI() {
 }
 
 function handleLogout() {
-  currentUser = null;
-  setSession(null);
-  updateAuthUI();
-  filterAndRender();
+  supabaseClient.auth.signOut();
 }
 
 function openAuthModal(tab = 'login') {
@@ -177,25 +125,24 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
   tab.addEventListener('click', () => switchAuthTab(tab.dataset.tab));
 });
 
-document.getElementById('loginForm').addEventListener('submit', (e) => {
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
-  const result = login(user, pass);
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  const result = await login(user, pass);
+  submitBtn.disabled = false;
   const errEl = document.getElementById('loginError');
   if (!result.ok) {
     errEl.textContent = result.msg;
     errEl.hidden = false;
     return;
   }
-  currentUser = user;
-  setSession(user);
   closeModal('auth');
-  updateAuthUI();
-  filterAndRender();
 });
 
-document.getElementById('registerForm').addEventListener('submit', (e) => {
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const user = document.getElementById('regUser').value.trim();
   const pass = document.getElementById('regPass').value;
@@ -207,17 +154,16 @@ document.getElementById('registerForm').addEventListener('submit', (e) => {
     errEl.hidden = false;
     return;
   }
-  const result = register(user, pass);
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  const result = await register(user, pass);
+  submitBtn.disabled = false;
   if (!result.ok) {
     errEl.textContent = result.msg;
     errEl.hidden = false;
     return;
   }
-  currentUser = user;
-  setSession(user);
   closeModal('auth');
-  updateAuthUI();
-  filterAndRender();
 });
 
 uploadBtn.addEventListener('click', () => {
@@ -286,6 +232,10 @@ function showUploadError(msg) {
   el.hidden = false;
 }
 
+function sanitizeFileName(name) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
+}
+
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!currentUser || !selectedFile) {
@@ -293,7 +243,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     return;
   }
 
-  if (selectedFile.size > 80 * 1024 * 1024) {
+  if (selectedFile.size > MAX_FILE_SIZE) {
     showUploadError('حجم فایل خیلی بزرگ است (حداکثر حدود ۸۰ مگابایت).');
     return;
   }
@@ -309,55 +259,50 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 
   progressEl.hidden = false;
   submitBtn.disabled = true;
-  progressFill.style.width = '20%';
-  progressText.textContent = 'در حال آماده‌سازی...';
+  progressFill.style.width = '15%';
+  progressText.textContent = 'در حال استخراج اطلاعات ویدیو...';
 
   try {
-    const id = 'v_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
     const blob = selectedFile;
-    const objectURL = URL.createObjectURL(blob);
-
-    progressFill.style.width = '50%';
-    progressText.textContent = 'در حال استخراج اطلاعات ویدیو...';
-
     const meta = await getVideoMeta(blob);
 
-    progressFill.style.width = '80%';
-    progressText.textContent = 'در حال ذخیره...';
+    progressFill.style.width = '35%';
+    progressText.textContent = 'در حال آپلود فایل...';
 
-    const videoRecord = {
-      id,
+    const storagePath = `${currentUid}/${Date.now()}_${sanitizeFileName(blob.name)}`;
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from(BUCKET)
+      .upload(storagePath, blob, { contentType: blob.type, upsert: false });
+
+    if (uploadError) throw uploadError;
+
+    progressFill.style.width = '75%';
+    progressText.textContent = 'در حال ذخیره اطلاعات...';
+
+    const { data: urlData } = supabaseClient.storage.from(BUCKET).getPublicUrl(storagePath);
+
+    const { error: insertError } = await supabaseClient.from('videos').insert({
       title,
       category,
       description,
       owner: currentUser,
-      createdAt: Date.now(),
+      owner_uid: currentUid,
       duration: meta.duration || 0,
       size: blob.size,
       mime: blob.type,
-      blob
-    };
-
-    await saveVideoToDB(videoRecord);
-
-    allVideos.unshift({
-      id,
-      title,
-      category,
-      description,
-      owner: currentUser,
-      createdAt: videoRecord.createdAt,
-      duration: videoRecord.duration,
-      objectURL,
-      mime: blob.type
+      storage_path: storagePath
     });
+
+    if (insertError) throw insertError;
 
     progressFill.style.width = '100%';
     progressText.textContent = 'آپلود موفق!';
 
+    await loadVideos();
+
     setTimeout(() => {
       closeModal('upload');
-      filterAndRender();
     }, 400);
   } catch (err) {
     console.error(err);
@@ -417,22 +362,34 @@ function escapeHtml(str) {
 }
 
 async function loadVideos() {
-  const records = await getAllVideosFromDB();
-  allVideos.forEach(v => {
-    if (v.objectURL) URL.revokeObjectURL(v.objectURL);
+  const { data, error } = await supabaseClient
+    .from('videos')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('خطا در بارگذاری ویدیوها:', error);
+    return;
+  }
+
+  allVideos = (data || []).map(r => {
+    const { data: urlData } = supabaseClient.storage.from(BUCKET).getPublicUrl(r.storage_path);
+    return {
+      id: r.id,
+      title: r.title,
+      category: r.category,
+      description: r.description || '',
+      owner: r.owner,
+      ownerUid: r.owner_uid,
+      createdAt: new Date(r.created_at).getTime(),
+      duration: r.duration || 0,
+      objectURL: urlData.publicUrl,
+      storagePath: r.storage_path,
+      mime: r.mime
+    };
   });
 
-  allVideos = records.map(r => ({
-    id: r.id,
-    title: r.title,
-    category: r.category,
-    description: r.description || '',
-    owner: r.owner,
-    createdAt: r.createdAt,
-    duration: r.duration || 0,
-    objectURL: URL.createObjectURL(r.blob),
-    mime: r.mime
-  })).sort((a, b) => b.createdAt - a.createdAt);
+  filterAndRender();
 }
 
 function filterAndRender() {
@@ -517,7 +474,7 @@ function openPlayer(video) {
   document.getElementById('modalDesc').textContent = video.description || 'بدون توضیحات';
 
   const delBtn = document.getElementById('deleteVideoBtn');
-  delBtn.hidden = !(currentUser && currentUser === video.owner);
+  delBtn.hidden = !(currentUid && currentUid === video.ownerUid);
 
   videoModal.hidden = false;
   document.body.style.overflow = 'hidden';
@@ -525,18 +482,21 @@ function openPlayer(video) {
 }
 
 document.getElementById('deleteVideoBtn').addEventListener('click', async () => {
-  if (!currentPlayingId || !currentUser) return;
+  if (!currentPlayingId || !currentUid) return;
   if (!confirm('آیا مطمئن هستید که می‌خواهید این ویدیو را حذف کنید؟')) return;
 
+  const video = allVideos.find(v => v.id === currentPlayingId);
+  if (!video) return;
+
   try {
-    await deleteVideoFromDB(currentPlayingId);
-    const idx = allVideos.findIndex(v => v.id === currentPlayingId);
-    if (idx !== -1) {
-      if (allVideos[idx].objectURL) URL.revokeObjectURL(allVideos[idx].objectURL);
-      allVideos.splice(idx, 1);
+    const { error: delRowError } = await supabaseClient.from('videos').delete().eq('id', currentPlayingId);
+    if (delRowError) throw delRowError;
+
+    if (video.storagePath) {
+      await supabaseClient.storage.from(BUCKET).remove([video.storagePath]);
     }
     closeModal('video');
-    filterAndRender();
+    await loadVideos();
   } catch (err) {
     alert('خطا در حذف ویدیو');
     console.error(err);
@@ -600,19 +560,34 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  const user = session ? session.user : null;
+  if (user) {
+    currentUser = (user.user_metadata && user.user_metadata.username) || (user.email || '').split('@')[0];
+    currentUid = user.id;
+  } else {
+    currentUser = null;
+    currentUid = null;
+  }
+  updateAuthUI();
+  filterAndRender();
+});
+
+// هر ۱۵ ثانیه لیست را تازه می‌کند تا ویدیوهای بازدیدکننده‌های دیگر هم دیده شود
+setInterval(loadVideos, 15000);
+
 async function init() {
   try {
-    await openDB();
-    const session = getSession();
-    if (session && getUsers()[session]) {
-      currentUser = session;
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      currentUser = (session.user.user_metadata && session.user.user_metadata.username) || (session.user.email || '').split('@')[0];
+      currentUid = session.user.id;
     }
     updateAuthUI();
     await loadVideos();
-    filterAndRender();
   } catch (err) {
     console.error('Init error:', err);
-    alert('خطا در راه‌اندازی پایگاه داده مرورگر. لطفاً مرورگر را به‌روز کنید یا حالت خصوصی را خاموش کنید.');
+    alert('خطا در اتصال به Supabase. لطفاً supabase-config.js را با اطلاعات پروژه خودتان پر کنید (README.md را ببینید).');
   }
 }
 
