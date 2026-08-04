@@ -5,7 +5,7 @@
 // توسط Row Level Security (فایل setup.sql) تأمین می‌شود، نه پنهان بودن این کلیدها.
 // ====================================================================
 
-const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL"; // مثال: https://xxxxx.supabase.co
-const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY";
+const SUPABASE_URL = "https://paqmeesryrphdjryakqo.supabase.co"; // مثال: https://xxxxx.supabase.co
+const SUPABASE_ANON_KEY = "sb_publishable_cxRc8VGvKOFgFIFl4rgzbQ_ZimzGSqA";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
