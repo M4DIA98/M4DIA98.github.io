@@ -6,17 +6,19 @@ const categoryNames = {
   other: 'سایر'
 };
 
-const EMAIL_DOMAIN = '@vidome.local'; // برای تبدیل نام کاربری به ایمیل جهت Supabase Auth
-const MAX_FILE_SIZE = 80 * 1024 * 1024; // ۸۰ مگابایت
+const EMAIL_DOMAIN = '@vidome.local';
+const MAX_FILE_SIZE = 80 * 1024 * 1024;
 const BUCKET = 'videos';
 
-let currentUser = null; // نام کاربری نمایشی
+let currentUser = null;
 let currentUid = null;
 let allVideos = [];
 let currentCategory = 'all';
 let currentSearch = '';
 let selectedFile = null;
 let currentPlayingId = null;
+let likesByVideo = {}; // { video_id: Set(user_uid) }
+let currentVideoComments = [];
 
 const videoGrid = document.getElementById('videoGrid');
 const emptyState = document.getElementById('emptyState');
@@ -251,6 +253,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   const title = document.getElementById('videoTitle').value.trim();
   const category = document.getElementById('videoCategory').value;
   const description = document.getElementById('videoDesc').value.trim();
+  const isShort = document.getElementById('videoIsShort').checked;
 
   const progressEl = document.getElementById('uploadProgress');
   const progressFill = document.getElementById('progressFill');
@@ -291,7 +294,8 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       duration: meta.duration || 0,
       size: blob.size,
       mime: blob.type,
-      storage_path: storagePath
+      storage_path: storagePath,
+      is_short: isShort
     });
 
     if (insertError) throw insertError;
@@ -385,19 +389,45 @@ async function loadVideos() {
       duration: r.duration || 0,
       objectURL: urlData.publicUrl,
       storagePath: r.storage_path,
-      mime: r.mime
+      mime: r.mime,
+      isShort: !!r.is_short
     };
   });
 
+  await loadLikes();
   filterAndRender();
 }
 
-function filterAndRender() {
-  let list = [...allVideos];
-
-  if (currentCategory !== 'all') {
-    list = list.filter(v => v.category === currentCategory);
+async function loadLikes() {
+  const { data, error } = await supabaseClient.from('likes').select('video_id, user_uid');
+  if (error) {
+    console.error('خطا در بارگذاری لایک‌ها:', error);
+    return;
   }
+  likesByVideo = {};
+  (data || []).forEach(row => {
+    if (!likesByVideo[row.video_id]) likesByVideo[row.video_id] = new Set();
+    likesByVideo[row.video_id].add(row.user_uid);
+  });
+}
+
+function getLikeCount(videoId) {
+  return likesByVideo[videoId] ? likesByVideo[videoId].size : 0;
+}
+
+function isLikedByMe(videoId) {
+  return !!(currentUid && likesByVideo[videoId] && likesByVideo[videoId].has(currentUid));
+}
+
+function filterAndRender() {
+  const isShortsMode = currentCategory === 'shorts';
+  let sectionList = allVideos.filter(v => !!v.isShort === isShortsMode);
+
+  if (!isShortsMode && currentCategory !== 'all') {
+    sectionList = sectionList.filter(v => v.category === currentCategory);
+  }
+
+  let list = sectionList;
   if (currentSearch.trim()) {
     const q = currentSearch.trim().toLowerCase();
     list = list.filter(v =>
@@ -408,7 +438,9 @@ function filterAndRender() {
     );
   }
 
-  if (currentSearch.trim()) {
+  if (isShortsMode) {
+    sectionTitle.textContent = currentSearch.trim() ? `شورت‌ها برای «${currentSearch}»` : '🎬 شورت‌ها';
+  } else if (currentSearch.trim()) {
     sectionTitle.textContent = `نتایج جستجو برای «${currentSearch}»`;
   } else if (currentCategory === 'all') {
     sectionTitle.textContent = 'همه ویدیوها';
@@ -416,17 +448,25 @@ function filterAndRender() {
     sectionTitle.textContent = `دسته ${categoryNames[currentCategory] || currentCategory}`;
   }
 
-  renderVideos(list);
+  videoGrid.classList.toggle('shorts-mode', isShortsMode);
+  renderVideos(list, sectionList.length === 0, isShortsMode);
 }
 
-function renderVideos(list) {
+function renderVideos(list, sectionIsEmpty, isShortsMode) {
   videoGrid.innerHTML = '';
   noResults.hidden = true;
   emptyState.hidden = true;
 
-  if (allVideos.length === 0) {
+  if (sectionIsEmpty) {
     emptyState.hidden = false;
     videoCount.textContent = '';
+    if (isShortsMode) {
+      document.querySelector('#emptyState h3').textContent = 'هنوز شورتی وجود ندارد';
+      emptyText.textContent = currentUser ? 'موقع آپلود، گزینه «شورت‌ها» را فعال کنید.' : 'برای شروع، وارد حساب کاربری شوید و یک شورت آپلود کنید.';
+    } else {
+      document.querySelector('#emptyState h3').textContent = 'هنوز ویدیویی وجود ندارد';
+      emptyText.textContent = currentUser ? 'روی دکمه «آپلود ویدیو» کلیک کنید و اولین ویدیوی این سایت را اضافه کنید.' : 'برای شروع، وارد حساب کاربری شوید و ویدیو آپلود کنید.';
+    }
     return;
   }
 
@@ -454,6 +494,7 @@ function renderVideos(list) {
         <div class="video-meta">
           <span>${escapeHtml(video.owner)}</span>
           <span class="video-category">${categoryNames[video.category] || video.category}</span>
+          <span class="video-like-badge">🤍 ${getLikeCount(video.id)}</span>
         </div>
       </div>
     `;
@@ -469,17 +510,172 @@ function openPlayer(video) {
   player.src = video.objectURL;
   document.getElementById('modalTitle').textContent = video.title;
   document.getElementById('modalOwner').textContent = '👤 ' + video.owner;
-  document.getElementById('modalCategory').textContent = categoryNames[video.category] || video.category;
+  document.getElementById('modalCategory').textContent = video.isShort ? '🎬 شورت' : (categoryNames[video.category] || video.category);
   document.getElementById('modalDate').textContent = formatDate(video.createdAt);
   document.getElementById('modalDesc').textContent = video.description || 'بدون توضیحات';
 
   const delBtn = document.getElementById('deleteVideoBtn');
   delBtn.hidden = !(currentUid && currentUid === video.ownerUid);
 
+  updateLikeButton(video.id);
+
+  const commentForm = document.getElementById('commentForm');
+  const commentLoginHint = document.getElementById('commentLoginHint');
+  commentForm.hidden = !currentUser;
+  commentLoginHint.hidden = !!currentUser;
+  document.getElementById('commentInput').value = '';
+
   videoModal.hidden = false;
   document.body.style.overflow = 'hidden';
   player.play().catch(() => {});
+
+  loadComments(video.id);
 }
+
+function updateLikeButton(videoId) {
+  const likeBtn = document.getElementById('likeBtn');
+  const likeIcon = document.getElementById('likeIcon');
+  const likeCount = document.getElementById('likeCount');
+  const liked = isLikedByMe(videoId);
+  likeBtn.classList.toggle('liked', liked);
+  likeIcon.textContent = liked ? '❤️' : '🤍';
+  likeCount.textContent = getLikeCount(videoId);
+  likeBtn.disabled = !currentUser;
+  likeBtn.title = currentUser ? '' : 'برای لایک کردن وارد شوید';
+}
+
+document.getElementById('likeBtn').addEventListener('click', async () => {
+  if (!currentUser || !currentPlayingId) {
+    if (!currentUser) openAuthModal('login');
+    return;
+  }
+  const videoId = currentPlayingId;
+  const likeBtn = document.getElementById('likeBtn');
+  likeBtn.disabled = true;
+
+  try {
+    if (isLikedByMe(videoId)) {
+      const { error } = await supabaseClient.from('likes')
+        .delete().eq('video_id', videoId).eq('user_uid', currentUid);
+      if (error) throw error;
+      if (likesByVideo[videoId]) likesByVideo[videoId].delete(currentUid);
+    } else {
+      const { error } = await supabaseClient.from('likes')
+        .insert({ video_id: videoId, user_uid: currentUid });
+      if (error) throw error;
+      if (!likesByVideo[videoId]) likesByVideo[videoId] = new Set();
+      likesByVideo[videoId].add(currentUid);
+    }
+    updateLikeButton(videoId);
+  } catch (err) {
+    console.error('خطا در لایک:', err);
+  } finally {
+    likeBtn.disabled = !currentUser;
+  }
+});
+
+async function loadComments(videoId) {
+  const listEl = document.getElementById('commentsList');
+  listEl.innerHTML = '<p class="no-comments">در حال بارگذاری نظرات...</p>';
+
+  const { data, error } = await supabaseClient
+    .from('comments')
+    .select('*')
+    .eq('video_id', videoId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('خطا در بارگذاری نظرات:', error);
+    listEl.innerHTML = '<p class="no-comments">خطا در بارگذاری نظرات</p>';
+    return;
+  }
+
+  currentVideoComments = data || [];
+  document.getElementById('commentCount').textContent = currentVideoComments.length;
+  renderComments();
+}
+
+function renderComments() {
+  const listEl = document.getElementById('commentsList');
+  if (currentVideoComments.length === 0) {
+    listEl.innerHTML = '<p class="no-comments">هنوز نظری ثبت نشده. اولین نفر باشید!</p>';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  currentVideoComments.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'comment-item';
+    const canDelete = currentUid && currentUid === c.user_uid;
+    item.innerHTML = `
+      <div class="comment-item-head">
+        <span class="comment-owner">${escapeHtml(c.owner)}</span>
+        <span class="comment-date">${formatDate(new Date(c.created_at).getTime())}</span>
+      </div>
+      <p class="comment-text">${escapeHtml(c.content)}</p>
+      ${canDelete ? `<button type="button" class="comment-delete" data-comment-id="${c.id}">حذف</button>` : ''}
+    `;
+    listEl.appendChild(item);
+  });
+
+  listEl.querySelectorAll('.comment-delete').forEach(btn => {
+    btn.addEventListener('click', () => deleteComment(btn.dataset.commentId));
+  });
+}
+
+async function deleteComment(commentId) {
+  if (!confirm('این نظر حذف شود؟')) return;
+  try {
+    const { error } = await supabaseClient.from('comments').delete().eq('id', commentId);
+    if (error) throw error;
+    currentVideoComments = currentVideoComments.filter(c => c.id !== commentId);
+    document.getElementById('commentCount').textContent = currentVideoComments.length;
+    renderComments();
+  } catch (err) {
+    alert('خطا در حذف نظر');
+    console.error(err);
+  }
+}
+
+document.getElementById('commentForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!currentUser || !currentPlayingId) return;
+
+  const input = document.getElementById('commentInput');
+  const content = input.value.trim();
+  if (!content) return;
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+
+  try {
+    const { data, error } = await supabaseClient.from('comments').insert({
+      video_id: currentPlayingId,
+      user_uid: currentUid,
+      owner: currentUser,
+      content
+    }).select();
+
+    if (error) throw error;
+
+    if (data && data[0]) {
+      currentVideoComments.unshift(data[0]);
+      document.getElementById('commentCount').textContent = currentVideoComments.length;
+      renderComments();
+    }
+    input.value = '';
+  } catch (err) {
+    alert('خطا در ارسال نظر');
+    console.error(err);
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+document.getElementById('commentLoginLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  openAuthModal('login');
+});
 
 document.getElementById('deleteVideoBtn').addEventListener('click', async () => {
   if (!currentPlayingId || !currentUid) return;
@@ -573,7 +769,6 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
   filterAndRender();
 });
 
-// هر ۱۵ ثانیه لیست را تازه می‌کند تا ویدیوهای بازدیدکننده‌های دیگر هم دیده شود
 setInterval(loadVideos, 15000);
 
 async function init() {

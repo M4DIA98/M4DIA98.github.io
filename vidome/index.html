@@ -34,6 +34,7 @@
         <a href="#" class="nav-link" data-category="nature">طبیعت</a>
         <a href="#" class="nav-link" data-category="sport">ورزش</a>
         <a href="#" class="nav-link" data-category="other">سایر</a>
+        <a href="#" class="nav-link nav-link-shorts" data-category="shorts">🎬 شورت‌ها</a>
       </nav>
 
       <div class="auth-area" id="authArea">
@@ -140,6 +141,12 @@
           <textarea id="videoDesc" rows="3" maxlength="300" placeholder="توضیح کوتاه..."></textarea>
         </div>
         <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="videoIsShort">
+            <span>این ویدیو در بخش <strong>شورت‌ها</strong> نمایش داده شود (ویدیوی کوتاه و عمودی)</span>
+          </label>
+        </div>
+        <div class="form-group">
           <label for="videoFile">فایل ویدیو</label>
           <div class="file-drop" id="fileDrop">
             <input type="file" id="videoFile" accept="video/*" required>
@@ -179,7 +186,27 @@
           <span id="modalDate"></span>
         </div>
         <p id="modalDesc"></p>
-        <button class="btn btn-danger btn-sm" id="deleteVideoBtn" hidden>حذف این ویدیو</button>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline btn-sm like-btn" id="likeBtn">
+            <span id="likeIcon">🤍</span>
+            <span id="likeCount">۰</span>
+            لایک
+          </button>
+          <button class="btn btn-danger btn-sm" id="deleteVideoBtn" hidden>حذف این ویدیو</button>
+        </div>
+
+        <div class="comments-section">
+          <h4 class="comments-heading">نظرات (<span id="commentCount">۰</span>)</h4>
+
+          <form id="commentForm" class="comment-form" hidden>
+            <textarea id="commentInput" rows="2" maxlength="500" placeholder="نظر خود را بنویسید..." required></textarea>
+            <button type="submit" class="btn btn-primary btn-sm">ارسال</button>
+          </form>
+          <p class="comment-login-hint" id="commentLoginHint" hidden>برای ارسال نظر باید <a href="#" id="commentLoginLink">وارد حساب کاربری</a> شوید.</p>
+
+          <div class="comments-list" id="commentsList"></div>
+        </div>
       </div>
     </div>
   </div>
