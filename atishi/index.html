@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>آتیشی 🔥</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0b0b0f;
+  --card:rgba(20,20,28,.78);
+  --border:rgba(255,255,255,.09);
+  --text:#f5f5f7;
+  --muted:#a9a9b3;
+  --accent:#ff6a00;
+  --accent2:#ff9a3d;
+  --me:#1f2a44;
+  --other:#1d1d25;
+  --success:#22c55e;
+  --danger:#ef4444;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Vazirmatn',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+body::before,body::after{
+  content:"";
+  position:fixed;
+  width:520px;height:520px;border-radius:50%;
+  filter:blur(80px);z-index:-1;
+  animation:float 12s ease-in-out infinite;
+}
+body::before{background:rgba(255,90,0,.28);top:-140px;right:-120px}
+body::after{background:rgba(255,180,0,.14);bottom:-160px;left:-120px;animation-delay:-5s}
+@keyframes float{
+  0%,100%{transform:translateY(0) translateX(0)}
+  50%{transform:translateY(28px) translateX(-18px)}
+}
+
+.app{
+  width:min(1100px,97vw);
+  height:min(94vh,920px);
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:14px;
+}
+.sidebar,.chat{
+  background:var(--card);
+  border:1px solid var(--border);
+  backdrop-filter:blur(18px);
+  border-radius:28px;
+  box-shadow:0 18px 40px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+.sidebar{
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.logo{
+  width:52px;height:52px;border-radius:16px;
+  display:grid;place-items:center;font-size:26px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+}
+.profile-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  flex:1;
+  overflow-y:auto;
+}
+.profile-card input,.profile-card textarea,.admin-panel input,.admin-panel textarea{
+  width:100%;
+  padding:11px 12px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:#11131a;
+  color:#fff;
+  font:inherit;
+  outline:none;
+  resize:none;
+}
+.avatar-wrap{display:flex;justify-content:center}
+.avatar-wrap img{
+  width:86px;height:86px;border-radius:50%;
+  object-fit:cover;border:3px solid var(--accent);
+}
+.save-btn,.logout-btn,.admin-btn,.challenge-btn,.media-btn{
+  border:none;
+  border-radius:14px;
+  padding:11px;
+  color:#fff;
+  cursor:pointer;
+  font:inherit;
+  font-weight:700;
+  transition:.2s;
+}
+.save-btn,.challenge-btn{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.logout-btn{background:#2a2a35}
+.admin-btn{background:#3b82f6}
+.media-btn{background:#374151;font-size:18px;width:46px;height:46px;padding:0;display:grid;place-items:center}
+.save-btn:hover,.challenge-btn:hover{filter:brightness(1.1)}
+.logout-btn:hover{background:#3a3a48}
+
+.admin-panel{
+  background:rgba(59,130,246,.08);
+  border:1px solid rgba(59,130,246,.25);
+  border-radius:18px;
+  padding:12px;
+  display:none;
+  flex-direction:column;
+  gap:8px;
+}
+.admin-panel.show{display:flex}
+.admin-panel h4{margin:0 0 4px;color:#93c5fd;font-size:14px}
+
+.chat{
+  display:flex;
+  flex-direction:column;
+}
+.chat-header{
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.chat-header h2{margin:0;font-size:1.25rem}
+.messages{
+  flex:1;
+  overflow-y:auto;
+  padding:16px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  scroll-behavior:smooth;
+}
+.message{
+  display:flex;
+  gap:10px;
+  align-items:flex-end;
+  max-width:100%;
+}
+.message.me{flex-direction:row-reverse}
+.avatar{
+  width:38px;height:38px;border-radius:12px;
+  object-fit:cover;cursor:pointer;flex-shrink:0;
+}
+.bubble{
+  max-width:min(75%,540px);
+  background:var(--other);
+  border-radius:20px;
+  padding:10px 13px;
+  position:relative;
+}
+.message.me .bubble{background:var(--me)}
+.bubble.challenge{
+  background:linear-gradient(135deg,#1e3a5f,#1a2744);
+  border:1px solid rgba(59,130,246,.4);
+}
+.meta{
+  display:flex;
+  gap:8px;
+  margin-bottom:4px;
+  font-size:12px;
+  align-items:center;
+}
+.name{font-weight:700;color:#ffd29f;cursor:pointer}
+.time{color:var(--muted)}
+.text{white-space:pre-wrap;line-height:1.75;word-break:break-word}
+.reply-preview{
+  background:rgba(0,0,0,.25);
+  border-right:3px solid var(--accent);
+  padding:6px 10px;
+  border-radius:10px;
+  margin-bottom:6px;
+  font-size:12px;
+  color:var(--muted);
+  cursor:pointer;
+}
+.media-content{margin-top:6px}
+.media-content img,.media-content video{
+  max-width:100%;
+  max-height:280px;
+  border-radius:14px;
+  display:block;
+}
+.media-content audio{width:100%;margin-top:4px}
+.media-content a.file-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:rgba(255,255,255,.08);
+  padding:8px 12px;
+  border-radius:12px;
+  color:#93c5fd;
+  text-decoration:none;
+  font-size:13px;
+}
+.reactions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  margin-top:6px;
+}
+.reaction-btn{
+  background:rgba(255,255,255,.07);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:2px 8px;
+  font-size:13px;
+  cursor:pointer;
+  color:var(--text);
+  transition:.15s;
+}
+.reaction-btn:hover,.reaction-btn.active{background:rgba(255,106,0,.25);border-color:var(--accent)}
+.msg-actions{
+  display:flex;
+  gap:6px;
+  margin-top:4px;
+  opacity:0;
+  transition:.2s;
+}
+.bubble:hover .msg-actions{opacity:1}
+.msg-actions button{
+  background:transparent;
+  border:none;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:13px;
+  padding:2px 6px;
+  border-radius:8px;
+}
+.msg-actions button:hover{color:var(--accent);background:rgba(255,106,0,.1)}
+
+.composer{
+  padding:12px 16px;
+  border-top:1px solid var(--border);
+}
+.reply-bar{
+  display:none;
+  background:rgba(255,106,0,.1);
+  border-radius:12px;
+  padding:8px 12px;
+  margin-bottom:8px;
+  font-size:13px;
+  align-items:center;
+  justify-content:space-between;
+}
+.reply-bar.show{display:flex}
+.form{
+  display:flex;
+  gap:8px;
+  background:#101218;
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:8px 10px;
+  align-items:center;
+}
+.form input[type=text]{
+  flex:1;
+  background:transparent;
+  border:none;
+  color:#fff;
+  outline:none;
+  font:inherit;
+  min-width:0;
+}
+.send{
+  width:48px;height:48px;border:none;border-radius:16px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;cursor:pointer;font-size:18px;flex-shrink:0;
+}
+.file-input{display:none}
+
+.auth-box{
+  position:fixed;inset:0;
+  background:#0b0b0f;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  gap:12px;z-index:3000;
+}
+.auth-box input{
+  width:min(340px,88vw);
+  padding:14px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  background:#11131a;color:#fff;font:inherit;outline:none;
+}
+.auth-actions{display:flex;gap:10px}
+#authStatus{color:#ffb36b;min-height:24px}
+
+.modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;justify-content:center;align-items:center;
+  z-index:2500;
+}
+.modal.show{display:flex}
+.modal-box{
+  width:min(380px,92vw);
+  background:#171922;
+  border-radius:24px;
+  padding:24px;
+  text-align:center;
+  position:relative;
+}
+.modal-avatar{width:110px;height:110px;border-radius:50%;object-fit:cover}
+.close-btn{
+  position:absolute;top:12px;left:12px;
+  width:36px;height:36px;border:none;border-radius:12px;
+  background:#242735;color:#fff;cursor:pointer;
+}
+
+.emoji-picker{
+  position:absolute;
+  bottom:70px;
+  left:16px;
+  width:min(320px,90vw);
+  max-height:260px;
+  background:#1a1c26;
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:10px;
+  display:none;
+  flex-wrap:wrap;
+  gap:4px;
+  overflow-y:auto;
+  z-index:100;
+  box-shadow:0 12px 30px rgba(0,0,0,.5);
+}
+.emoji-picker.show{display:flex}
+.emoji-picker span{
+  font-size:22px;
+  cursor:pointer;
+  padding:4px;
+  border-radius:8px;
+  transition:.15s;
+}
+.emoji-picker span:hover{background:rgba(255,255,255,.1);transform:scale(1.2)}
+
+.challenge-banner{
+  background:linear-gradient(90deg,#1e3a5f,#1a2744);
+  border:1px solid rgba(59,130,246,.35);
+  border-radius:16px;
+  padding:12px 14px;
+  margin-bottom:8px;
+  font-size:13px;
+}
+.challenge-banner strong{color:#93c5fd}
+
+@media (max-width:900px){
+  .app{grid-template-columns:1fr;width:100vw;height:100vh;gap:0}
+  .sidebar{display:none}
+  .chat{border-radius:0;border:none}
+}
+</style>
+</head>
+<body>
+
+# اگه فایبلی و داری کد های آتیشی رو نگاه میکنی تا تشخیص بدی ai جنریته یا نه
+# باید بهت بگم سیه
+
+<div id="authBox" class="auth-box">
+  <h2>🔥 ورود به آتیشی</h2>
+  <input id="email" type="email" placeholder="ایمیل">
+  <input id="password" type="password" placeholder="رمز عبور">
+  <div class="auth-actions">
+    <button id="signupBtn" class="save-btn">ثبت‌نام</button>
+    <button id="loginBtn" class="save-btn">ورود</button>
+  </div>
+  <p id="authStatus"></p>
+</div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">🔥</div>
+      <div>
+        <h2 style="margin:0;font-size:1.3rem">آتیشی</h2>
+        <small style="color:var(--muted)">چت‌روم زنده فارسی</small>
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <div class="avatar-wrap">
+        <img id="myAvatarPreview" src="https://api.dicebear.com/9.x/thumbs/svg?seed=Atishi">
+      </div>
+      <input id="username" placeholder="نام کاربری">
+      <textarea id="bio" rows="2" placeholder="بیوگرافی کوتاه..."></textarea>
+      <input id="avatarUrl" placeholder="لینک عکس پروفایل">
+      <button id="saveProfile" class="save-btn">ذخیره پروفایل</button>
+      <button id="logoutBtn" class="logout-btn">خروج از حساب</button>
+
+      <div id="adminPanel" class="admin-panel">
+        <h4>🛠 پنل ادمین</h4>
+        <input id="chQuestion" placeholder="سؤال چالش">
+        <input id="chAnswer" placeholder="جواب صحیح">
+        <input id="chPrize" placeholder="جایزه (مثلاً ۱۰ هزار تومان)">
+        <button id="createChallenge" class="challenge-btn">📢 ایجاد چالش</button>
+        <button id="endChallenge" class="logout-btn" style="margin-top:4px">پایان چالش فعلی</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="chat">
+    <div class="chat-header">
+      <div>
+        <h2>🔥 آتیشی</h2>
+        <small style="color:var(--muted)">گفتگوی عمومی</small>
+      </div>
+      <div id="activeChallengeInfo" style="font-size:12px;color:#93c5fd"></div>
+    </div>
+
+    <section id="messages" class="messages"></section>
+
+    <div class="composer" style="position:relative">
+      <div id="replyBar" class="reply-bar">
+        <span id="replyText"></span>
+        <button id="cancelReply" style="background:none;border:none;color:var(--muted);cursor:pointer">✕</button>
+      </div>
+
+      <div id="emojiPicker" class="emoji-picker"></div>
+
+      <form id="form" class="form">
+        <button type="button" class="media-btn" id="emojiBtn" title="ایموجی">😊</button>
+        <button type="button" class="media-btn" id="attachBtn" title="ارسال فایل">📎</button>
+        <input type="file" id="fileInput" class="file-input" accept="image/*,video/*,audio/*,.pdf,.zip,.rar,.doc,.docx,.txt">
+        <input id="text" type="text" placeholder="پیامت را بنویس..." autocomplete="off">
+        <button class="send" type="submit">➤</button>
+      </form>
+    </div>
+  </main>
+</div>
+
+<div id="profileModal" class="modal">
+  <div class="modal-box">
+    <button id="closeModal" class="close-btn">✕</button>
+    <img id="modalAvatar" class="modal-avatar" src="">
+    <h3 id="modalName"></h3>
+    <p id="modalBio" style="color:var(--muted)"></p>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+const SUPABASE_URL = 'https://wmeqqiqtmhqtwejrjzoy.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_om07_Xz5JrKokPletMj_VQ_LHpI09j6'
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+const ADMIN_EMAIL = 'admin@atishi.ir'
+
+const authBox = document.getElementById('authBox')
+const authStatus = document.getElementById('authStatus')
+const messagesEl = document.getElementById('messages')
+const form = document.getElementById('form')
+const textInput = document.getElementById('text')
+const usernameInput = document.getElementById('username')
+const bioInput = document.getElementById('bio')
+const avatarInput = document.getElementById('avatarUrl')
+const avatarPreview = document.getElementById('myAvatarPreview')
+const saveBtn = document.getElementById('saveProfile')
+const adminPanel = document.getElementById('adminPanel')
+const replyBar = document.getElementById('replyBar')
+const replyText = document.getElementById('replyText')
+const emojiPicker = document.getElementById('emojiPicker')
+const fileInput = document.getElementById('fileInput')
+
+let currentUser = null
+let myUsername = ''
+let replyToId = null
+let replyToText = ''
+let activeChallenge = null
+const messageCache = new Map() 
+
+const EMOJIS = [
+  '😀','😂','🤣','😊','😍','🥰','😘','😎','🤩','🥳',
+  '😭','😤','😡','🤬','🤯','😱','🥺','😢','😴','🤔',
+  '👍','👎','👏','🙌','🤝','✌️','🤞','🤟','👊','✊',
+  '❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','❣️',
+  '🔥','✨','⭐','🌟','💯','🎉','🎊','🏆','🥇','🎁',
+  '🍕','🍔','🍟','🍩','☕','🍺','🍷','🎂','🍦','🍎',
+  '🐶','🐱','🦁','🐼','🦊','🐻','🐸','🐵','🦄','🐝',
+  '🌸','🌹','🌻','🍀','🌈','☀️','🌙','⚡','❄️','🌊',
+  '📱','💻','🎮','🎧','📷','🎬','📚','✈️','🚀','⚽'
+]
+
+function buildEmojiPicker(){
+  emojiPicker.innerHTML = EMOJIS.map(e => `<span data-emoji="${e}">${e}</span>`).join('')
+  emojiPicker.querySelectorAll('span').forEach(span=>{
+    span.onclick = ()=>{
+      textInput.value += span.dataset.emoji
+      textInput.focus()
+    }
+  })
+}
+buildEmojiPicker()
+
+document.getElementById('emojiBtn').onclick = (e)=>{
+  e.preventDefault()
+  emojiPicker.classList.toggle('show')
+}
+document.addEventListener('click', e=>{
+  if(!emojiPicker.contains(e.target) && e.target.id !== 'emojiBtn'){
+    emojiPicker.classList.remove('show')
+  }
+})
+
+async function updateAuthUI(){
+  const { data:{ session } } = await supabase.auth.getSession()
+  currentUser = session?.user || null
+  authBox.style.display = session ? 'none' : 'flex'
+
+  if(session){
+    const isAdmin = session.user.email === ADMIN_EMAIL
+    adminPanel.classList.toggle('show', isAdmin)
+    await loadMyProfile()
+    await loadActiveChallenge()
+  }
+}
+await updateAuthUI()
+
+document.getElementById('signupBtn').onclick = async ()=>{
+  const email = document.getElementById('email').value.trim()
+  const password = document.getElementById('password').value
+  const { error } = await supabase.auth.signUp({ email, password })
+  authStatus.textContent = error ? '❌ ' + error.message : '✅ ثبت‌نام شد — حالا وارد شو'
+}
+
+document.getElementById('loginBtn').onclick = async ()=>{
+  const email = document.getElementById('email').value.trim()
+  const password = document.getElementById('password').value
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  authStatus.textContent = error ? '❌ ' + error.message : '✅ ورود موفق'
+  await updateAuthUI()
+}
+
+document.getElementById('logoutBtn').onclick = async ()=>{
+  await supabase.auth.signOut()
+  location.reload()
+}
+
+avatarInput.addEventListener('input',()=>{
+  avatarPreview.src = avatarInput.value.trim() ||
+    'https://api.dicebear.com/9.x/thumbs/svg?seed=' + (usernameInput.value || 'Atishi')
+})
+
+async function loadMyProfile(){
+  if(!currentUser) return
+  const { data } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('owner', currentUser.id)
+    .maybeSingle()
+
+  if(data){
+    usernameInput.value = data.username
+    bioInput.value = data.bio || ''
+    avatarInput.value = data.avatar || ''
+    avatarPreview.src = data.avatar ||
+      'https://api.dicebear.com/9.x/thumbs/svg?seed=' + data.username
+    myUsername = data.username
+  }
+}
+
+saveBtn.onclick = async ()=>{
+  if(!currentUser) return alert('اول وارد شو')
+  const username = usernameInput.value.trim()
+  if(!username) return alert('نام کاربری لازم است')
+
+  const payload = {
+    owner: currentUser.id,
+    username,
+    bio: bioInput.value.trim(),
+    avatar: avatarInput.value.trim()
+  }
+
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('owner', currentUser.id)
+    .maybeSingle()
+
+  if(existing){
+    await supabase.from('profiles').update(payload).eq('owner', currentUser.id)
+  }else{
+    await supabase.from('profiles').insert(payload)
+  }
+  myUsername = username
+  alert('پروفایل ذخیره شد 🔥')
+}
+
+const modal = document.getElementById('profileModal')
+function openProfile(name, avatar, bio){
+  document.getElementById('modalName').textContent = name
+  document.getElementById('modalAvatar').src = avatar
+  document.getElementById('modalBio').textContent = bio || 'بیویی ثبت نشده'
+  modal.classList.add('show')
+}
+document.getElementById('closeModal').onclick = ()=> modal.classList.remove('show')
+modal.onclick = e=>{ if(e.target === modal) modal.classList.remove('show') }
+
+function setReply(id, text){
+  replyToId = id
+  replyToText = text
+  replyText.textContent = '↩️ پاسخ به: ' + (text.slice(0,60) || 'پیام')
+  replyBar.classList.add('show')
+  textInput.focus()
+}
+document.getElementById('cancelReply').onclick = ()=>{
+  replyToId = null
+  replyToText = ''
+  replyBar.classList.remove('show')
+}
+
+document.getElementById('attachBtn').onclick = ()=> fileInput.click()
+
+fileInput.onchange = async ()=>{
+  const file = fileInput.files[0]
+  if(!file) return
+  if(!myUsername) return alert('اول پروفایل بساز')
+
+  const maxSize = 25 * 1024 * 1024 // 25MB
+  if(file.size > maxSize) return alert('حجم فایل نباید بیشتر از ۲۵ مگابایت باشد')
+
+  const ext = file.name.split('.').pop()
+  const path = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+
+  const { error: upErr } = await supabase.storage
+    .from('chat-media')
+    .upload(path, file, { upsert: false })
+
+  if(upErr){
+    console.error(upErr)
+    return alert('خطا در آپلود: ' + upErr.message)
+  }
+
+  const { data: urlData } = supabase.storage.from('chat-media').getPublicUrl(path)
+  const mediaUrl = urlData.publicUrl
+
+  let mediaType = 'file'
+  if(file.type.startsWith('image/')) mediaType = 'image'
+  else if(file.type.startsWith('video/')) mediaType = 'video'
+  else if(file.type.startsWith('audio/')) mediaType = 'audio'
+
+  await supabase.from('messages').insert({
+    username: myUsername,
+    message: textInput.value.trim() || '',
+    avatar: avatarInput.value.trim(),
+    media_url: mediaUrl,
+    media_type: mediaType,
+    reply_to: replyToId
+  })
+
+  textInput.value = ''
+  fileInput.value = ''
+  cancelReplyClick()
+}
+
+function cancelReplyClick(){
+  replyToId = null
+  replyToText = ''
+  replyBar.classList.remove('show')
+}
+
+async function loadActiveChallenge(){
+  const { data } = await supabase
+    .from('challenges')
+    .select('*')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  activeChallenge = data
+  const info = document.getElementById('activeChallengeInfo')
+  if(data){
+    info.innerHTML = `🎯 چالش فعال: <strong>${data.question.slice(0,40)}...</strong>`
+  }else{
+    info.textContent = ''
+  }
+}
+
+document.getElementById('createChallenge').onclick = async ()=>{
+  if(!currentUser || currentUser.email !== ADMIN_EMAIL) return
+  const question = document.getElementById('chQuestion').value.trim()
+  const answer = document.getElementById('chAnswer').value.trim()
+  const prize = document.getElementById('chPrize').value.trim()
+  if(!question || !answer || !prize) return alert('همه فیلدها لازم است')
+
+  await supabase.from('challenges').update({ is_active: false }).eq('is_active', true)
+
+  const { data: ch, error } = await supabase.from('challenges').insert({
+    question, answer, prize,
+    created_by: myUsername || 'ادمین',
+    is_active: true
+  }).select().single()
+
+  if(error) return alert(error.message)
+
+  const { data: msg } = await supabase.from('messages').insert({
+    username: '🔥 سیستم',
+    message: `🎯 چالش جدید!\n\n❓ ${question}\n\n🎁 جایزه: ${prize}\n\nهر کی جواب درست رو بفرسته برنده می‌شه!`,
+    is_challenge: true,
+    challenge_id: ch.id
+  }).select().single()
+
+  if(msg){
+    await supabase.from('challenges').update({ message_id: msg.id }).eq('id', ch.id)
+  }
+
+  document.getElementById('chQuestion').value = ''
+  document.getElementById('chAnswer').value = ''
+  document.getElementById('chPrize').value = ''
+  await loadActiveChallenge()
+  alert('چالش ایجاد شد 🔥')
+}
+
+document.getElementById('endChallenge').onclick = async ()=>{
+  if(!currentUser || currentUser.email !== ADMIN_EMAIL) return
+  await supabase.from('challenges').update({ is_active: false }).eq('is_active', true)
+  await supabase.from('messages').insert({
+    username: '🔥 سیستم',
+    message: 'چالش فعلی به پایان رسید.'
+  })
+  await loadActiveChallenge()
+  alert('چالش پایان یافت')
+}
+
+async function checkChallengeAnswer(text){
+  if(!activeChallenge || !activeChallenge.is_active) return
+  const userAnswer = text.trim().toLowerCase()
+  const correct = activeChallenge.answer.trim().toLowerCase()
+
+  if(userAnswer === correct){
+    await supabase.from('challenges')
+      .update({ is_active: false, winner_username: myUsername })
+      .eq('id', activeChallenge.id)
+
+    await supabase.from('messages').insert({
+      username: '🔥 سیستم',
+      message: `🏆 تبریک!\n\n@${myUsername} برنده چالش شد!\n\n❓ سؤال: ${activeChallenge.question}\n🎁 جایزه: ${activeChallenge.prize}`
+    })
+
+    activeChallenge = null
+    document.getElementById('activeChallengeInfo').textContent = ''
+  }
+}
+
+async function toggleReaction(messageId, emoji){
+  if(!myUsername) return alert('اول پروفایل بساز')
+
+  const { data: existing } = await supabase
+    .from('reactions')
+    .select('id')
+    .eq('message_id', messageId)
+    .eq('username', myUsername)
+    .eq('emoji', emoji)
+    .maybeSingle()
+
+  if(existing){
+    await supabase.from('reactions').delete().eq('id', existing.id)
+  }else{
+    await supabase.from('reactions').insert({
+      message_id: messageId,
+      username: myUsername,
+      emoji
+    })
+  }
+  refreshReactions(messageId)
+}
+
+async function loadReactions(messageId){
+  const { data } = await supabase
+    .from('reactions')
+    .select('emoji, username')
+    .eq('message_id', messageId)
+
+  const counts = {}
+  const mine = new Set()
+  ;(data || []).forEach(r=>{
+    counts[r.emoji] = (counts[r.emoji] || 0) + 1
+    if(r.username === myUsername) mine.add(r.emoji)
+  })
+  return { counts, mine }
+}
+
+async function refreshReactions(messageId){
+  const el = document.querySelector(`[data-msg-id="${messageId}"] .reactions`)
+  if(!el) return
+  const { counts, mine } = await loadReactions(messageId)
+  el.innerHTML = Object.entries(counts).map(([emoji, count])=>{
+    const active = mine.has(emoji) ? 'active' : ''
+    return `<button class="reaction-btn ${active}" data-emoji="${emoji}">${emoji} ${count}</button>`
+  }).join('')
+
+  el.querySelectorAll('.reaction-btn').forEach(btn=>{
+    btn.onclick = ()=> toggleReaction(messageId, btn.dataset.emoji)
+  })
+}
+
+async function addMessage(m, prepend = false){
+  if(messageCache.has(m.id)) return
+  messageCache.set(m.id, m)
+
+  let profile = null
+  if(m.username !== '🔥 سیستم'){
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('username', m.username)
+      .maybeSingle()
+    profile = data
+  }
+
+  const avatar = profile?.avatar || m.avatar ||
+    'https://api.dicebear.com/9.x/thumbs/svg?seed=' + encodeURIComponent(m.username)
+  const bio = profile?.bio || ''
+  const me = m.username === myUsername
+
+  const time = new Date(m.created_at).toLocaleTimeString('fa-IR',{
+    hour:'2-digit', minute:'2-digit'
+  })
+
+  let replyHtml = ''
+  if(m.reply_to){
+    const replied = messageCache.get(m.reply_to)
+    const rText = replied ? (replied.message || '[مدیا]').slice(0,50) : 'پیام'
+    replyHtml = `<div class="reply-preview" data-goto="${m.reply_to}">↩️ ${replied?.username || ''}: ${rText}</div>`
+  }
+
+  let mediaHtml = ''
+  if(m.media_url){
+    if(m.media_type === 'image'){
+      mediaHtml = `<div class="media-content"><img src="${m.media_url}" alt="تصویر" loading="lazy"></div>`
+    }else if(m.media_type === 'video'){
+      mediaHtml = `<div class="media-content"><video src="${m.media_url}" controls playsinline></video></div>`
+    }else if(m.media_type === 'audio'){
+      mediaHtml = `<div class="media-content"><audio src="${m.media_url}" controls></audio></div>`
+    }else{
+      mediaHtml = `<div class="media-content"><a class="file-link" href="${m.media_url}" target="_blank" rel="noopener">📄 دانلود فایل</a></div>`
+    }
+  }
+
+  const isChallenge = m.is_challenge
+  const bubbleClass = isChallenge ? 'bubble challenge' : 'bubble'
+
+  const el = document.createElement('div')
+  el.className = 'message' + (me ? ' me' : '')
+  el.dataset.msgId = m.id
+
+  el.innerHTML = `
+    <img class="avatar" src="${avatar}" alt="">
+    <div class="${bubbleClass}">
+      ${replyHtml}
+      <div class="meta">
+        <span class="name">${m.username}</span>
+        <span class="time">${time}</span>
+      </div>
+      ${m.message ? `<div class="text">${escapeHtml(m.message)}</div>` : ''}
+      ${mediaHtml}
+      <div class="reactions"></div>
+      <div class="msg-actions">
+        <button class="reply-btn">↩️ پاسخ</button>
+        <button class="react-btn">😊</button>
+        ${currentUser?.email === ADMIN_EMAIL ? `<button class="del-btn">🗑</button>` : ''}
+      </div>
+    </div>
+  `
+
+  el.querySelector('.avatar').onclick = ()=> openProfile(m.username, avatar, bio)
+  el.querySelector('.name').onclick = ()=> openProfile(m.username, avatar, bio)
+
+  el.querySelector('.reply-btn').onclick = ()=>{
+    setReply(m.id, m.message || '[مدیا]')
+  }
+
+  el.querySelector('.react-btn').onclick = ()=>{
+    const quick = ['❤️','😂','🔥','👍','😮','😢']
+    const picker = document.createElement('div')
+    picker.style.cssText = 'position:absolute;background:#1a1c26;border-radius:12px;padding:6px;display:flex;gap:4px;z-index:50;box-shadow:0 8px 20px rgba(0,0,0,.4)'
+    quick.forEach(e=>{
+      const b = document.createElement('button')
+      b.textContent = e
+      b.style.cssText = 'background:none;border:none;font-size:20px;cursor:pointer'
+      b.onclick = ()=>{ toggleReaction(m.id, e); picker.remove() }
+      picker.appendChild(b)
+    })
+    el.querySelector('.bubble').appendChild(picker)
+    setTimeout(()=> picker.remove(), 4000)
+  }
+
+  const delBtn = el.querySelector('.del-btn')
+  if(delBtn){
+    delBtn.onclick = async ()=>{
+      if(confirm('حذف این پیام؟')){
+        await supabase.from('messages').delete().eq('id', m.id)
+        el.remove()
+        messageCache.delete(m.id)
+      }
+    }
+  }
+
+  const replyPreview = el.querySelector('.reply-preview')
+  if(replyPreview){
+    replyPreview.onclick = ()=>{
+      const target = document.querySelector(`[data-msg-id="${m.reply_to}"]`)
+      if(target) target.scrollIntoView({ behavior:'smooth', block:'center' })
+    }
+  }
+
+  if(prepend) messagesEl.prepend(el)
+  else{
+    messagesEl.appendChild(el)
+    messagesEl.scrollTop = messagesEl.scrollHeight
+  }
+
+  await refreshReactions(m.id)
+}
+
+function escapeHtml(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;')
+}
+
+const { data: oldMessages } = await supabase
+  .from('messages')
+  .select('*')
+  .order('created_at', { ascending: true })
+  .limit(150)
+
+for(const m of (oldMessages || [])){
+  await addMessage(m)
+}
+
+supabase.channel('chat-room')
+  .on('postgres_changes', { event:'INSERT', schema:'public', table:'messages' },
+    payload => addMessage(payload.new))
+  .on('postgres_changes', { event:'DELETE', schema:'public', table:'messages' },
+    payload => {
+      const el = document.querySelector(`[data-msg-id="${payload.old.id}"]`)
+      if(el) el.remove()
+      messageCache.delete(payload.old.id)
+    })
+  .on('postgres_changes', { event:'*', schema:'public', table:'reactions' },
+    payload => {
+      const mid = payload.new?.message_id || payload.old?.message_id
+      if(mid) refreshReactions(mid)
+    })
+  .on('postgres_changes', { event:'*', schema:'public', table:'challenges' },
+    () => loadActiveChallenge())
+  .subscribe()
+
+form.addEventListener('submit', async e=>{
+  e.preventDefault()
+  if(!myUsername) return alert('اول پروفایل بساز')
+  const text = textInput.value.trim()
+  if(!text) return
+
+  await supabase.from('messages').insert({
+    username: myUsername,
+    message: text,
+    avatar: avatarInput.value.trim(),
+    reply_to: replyToId
+  })
+
+  await checkChallengeAnswer(text)
+
+  textInput.value = ''
+  cancelReplyClick()
+  emojiPicker.classList.remove('show')
+})
+</script>
+</body>
+</html>
