@@ -557,11 +557,29 @@ input, select, textarea {
   flex-shrink: 0;
 }
 
-.video-grid.shorts-mode {
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+.shorts-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 420px;
+  margin: 0 auto;
+  max-height: 78vh;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  padding: 4px 4px 24px;
+  scroll-padding-top: 4px;
 }
-.video-grid.shorts-mode .video-thumb {
-  aspect-ratio: 9 / 16;
+.shorts-feed::-webkit-scrollbar { width: 6px; }
+.shorts-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.shorts-feed .video-card {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+.shorts-feed .video-thumb { aspect-ratio: 9 / 16; }
+
+@media (max-width: 480px) {
+  .shorts-feed { max-width: 100%; max-height: 82vh; }
 }
 
 .video-like-badge {

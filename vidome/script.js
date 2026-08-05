@@ -269,6 +269,10 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     const blob = selectedFile;
     const meta = await getVideoMeta(blob);
 
+    progressFill.style.width = '25%';
+    progressText.textContent = 'در حال ساخت تامنیل...';
+    const thumbBlob = await captureThumbnail(blob, meta.duration);
+
     progressFill.style.width = '35%';
     progressText.textContent = 'در حال آپلود فایل...';
 
@@ -279,6 +283,20 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       .upload(storagePath, blob, { contentType: blob.type, upsert: false });
 
     if (uploadError) throw uploadError;
+
+    let thumbnailPath = null;
+    if (thumbBlob) {
+      progressFill.style.width = '60%';
+      progressText.textContent = 'در حال آپلود تامنیل...';
+      thumbnailPath = `${currentUid}/thumb_${Date.now()}.jpg`;
+      const { error: thumbError } = await supabaseClient.storage
+        .from(BUCKET)
+        .upload(thumbnailPath, thumbBlob, { contentType: 'image/jpeg', upsert: false });
+      if (thumbError) {
+        console.warn('آپلود تامنیل ناموفق بود:', thumbError);
+        thumbnailPath = null;
+      }
+    }
 
     progressFill.style.width = '75%';
     progressText.textContent = 'در حال ذخیره اطلاعات...';
@@ -295,6 +313,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       size: blob.size,
       mime: blob.type,
       storage_path: storagePath,
+      thumbnail_path: thumbnailPath,
       is_short: isShort
     });
 
@@ -344,6 +363,52 @@ function getVideoMeta(blob) {
   });
 }
 
+function captureThumbnail(blob, duration) {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(blob);
+    const video = document.createElement('video');
+    video.preload = 'auto';
+    video.muted = true;
+    video.playsInline = true;
+
+    let done = false;
+    const finish = (result) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timeout);
+      URL.revokeObjectURL(url);
+      resolve(result);
+    };
+
+    const timeout = setTimeout(() => finish(null), 8000);
+
+    video.addEventListener('loadeddata', () => {
+      const seekTime = duration && duration > 0.5 ? Math.min(1, duration * 0.1) : 0;
+      try {
+        video.currentTime = seekTime;
+      } catch {
+        finish(null);
+      }
+    });
+
+    video.addEventListener('seeked', () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 320;
+        canvas.height = video.videoHeight || 180;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((thumbBlob) => finish(thumbBlob), 'image/jpeg', 0.8);
+      } catch {
+        finish(null);
+      }
+    });
+
+    video.addEventListener('error', () => finish(null));
+    video.src = url;
+  });
+}
+
 function formatDuration(seconds) {
   if (!seconds || !isFinite(seconds)) return '--:--';
   const m = Math.floor(seconds / 60);
@@ -378,6 +443,9 @@ async function loadVideos() {
 
   allVideos = (data || []).map(r => {
     const { data: urlData } = supabaseClient.storage.from(BUCKET).getPublicUrl(r.storage_path);
+    const thumbnailURL = r.thumbnail_path
+      ? supabaseClient.storage.from(BUCKET).getPublicUrl(r.thumbnail_path).data.publicUrl
+      : null;
     return {
       id: r.id,
       title: r.title,
@@ -389,6 +457,7 @@ async function loadVideos() {
       duration: r.duration || 0,
       objectURL: urlData.publicUrl,
       storagePath: r.storage_path,
+      thumbnailURL,
       mime: r.mime,
       isShort: !!r.is_short
     };
@@ -448,7 +517,8 @@ function filterAndRender() {
     sectionTitle.textContent = `دسته ${categoryNames[currentCategory] || currentCategory}`;
   }
 
-  videoGrid.classList.toggle('shorts-mode', isShortsMode);
+  videoGrid.classList.toggle('shorts-feed', isShortsMode);
+  videoGrid.classList.toggle('video-grid', !isShortsMode);
   renderVideos(list, sectionList.length === 0, isShortsMode);
 }
 
@@ -485,7 +555,9 @@ function renderVideos(list, sectionIsEmpty, isShortsMode) {
 
     card.innerHTML = `
       <div class="video-thumb">
-        <div class="placeholder-thumb">▶</div>
+        ${video.thumbnailURL
+          ? `<img src="${video.thumbnailURL}" alt="" loading="lazy">`
+          : `<div class="placeholder-thumb">▶</div>`}
         <span class="video-duration">${formatDuration(video.duration)}</span>
         <div class="video-play-icon"><span>▶</span></div>
       </div>
