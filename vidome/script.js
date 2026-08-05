@@ -18,7 +18,10 @@ let currentSearch = '';
 let selectedFile = null;
 let currentPlayingId = null;
 let likesByVideo = {}; // { video_id: Set(user_uid) }
+let commentCounts = {}; // { video_id: count }
 let currentVideoComments = [];
+let soundEnabled = false;
+let shortsObserver = null;
 
 const videoGrid = document.getElementById('videoGrid');
 const emptyState = document.getElementById('emptyState');
@@ -464,7 +467,20 @@ async function loadVideos() {
   });
 
   await loadLikes();
+  await loadCommentCounts();
   filterAndRender();
+}
+
+async function loadCommentCounts() {
+  const { data, error } = await supabaseClient.from('comments').select('video_id');
+  if (error) {
+    console.error('خطا در بارگذاری تعداد نظرات:', error);
+    return;
+  }
+  commentCounts = {};
+  (data || []).forEach(row => {
+    commentCounts[row.video_id] = (commentCounts[row.video_id] || 0) + 1;
+  });
 }
 
 async function loadLikes() {
@@ -523,6 +539,10 @@ function filterAndRender() {
 }
 
 function renderVideos(list, sectionIsEmpty, isShortsMode) {
+  if (shortsObserver) {
+    shortsObserver.disconnect();
+    shortsObserver = null;
+  }
   videoGrid.innerHTML = '';
   noResults.hidden = true;
   emptyState.hidden = true;
@@ -547,6 +567,12 @@ function renderVideos(list, sectionIsEmpty, isShortsMode) {
   }
 
   videoCount.textContent = `${list.length} ویدیو`;
+
+  if (isShortsMode) {
+    list.forEach(video => videoGrid.appendChild(buildShortsItem(video)));
+    setupShortsObserver();
+    return;
+  }
 
   list.forEach(video => {
     const card = document.createElement('article');
@@ -574,6 +600,99 @@ function renderVideos(list, sectionIsEmpty, isShortsMode) {
     card.addEventListener('click', () => openPlayer(video));
     videoGrid.appendChild(card);
   });
+}
+
+function buildShortsItem(video) {
+  const item = document.createElement('div');
+  item.className = 'shorts-item';
+  item.dataset.id = video.id;
+
+  const liked = isLikedByMe(video.id);
+
+  item.innerHTML = `
+    <video class="shorts-video" src="${video.objectURL}" ${video.thumbnailURL ? `poster="${video.thumbnailURL}"` : ''} muted loop playsinline preload="metadata"></video>
+    <div class="shorts-overlay">
+      <div class="shorts-info">
+        <h3 class="shorts-title">${escapeHtml(video.title)}</h3>
+        <p class="shorts-owner">👤 ${escapeHtml(video.owner)}</p>
+      </div>
+      <div class="shorts-actions">
+        <button type="button" class="shorts-action-btn shorts-mute-btn">
+          <span>${soundEnabled ? '🔊' : '🔇'}</span>
+        </button>
+        <button type="button" class="shorts-action-btn shorts-like-btn ${liked ? 'liked' : ''}">
+          <span>${liked ? '❤️' : '🤍'}</span>
+          <span class="shorts-action-count">${getLikeCount(video.id)}</span>
+        </button>
+        <button type="button" class="shorts-action-btn shorts-comment-btn">
+          <span>💬</span>
+          <span class="shorts-action-count">${commentCounts[video.id] || 0}</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  const videoEl = item.querySelector('.shorts-video');
+  videoEl.muted = !soundEnabled;
+
+  videoEl.addEventListener('click', () => {
+    if (videoEl.paused) videoEl.play().catch(() => {});
+    else videoEl.pause();
+  });
+
+  const muteBtn = item.querySelector('.shorts-mute-btn');
+  muteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    soundEnabled = !soundEnabled;
+    videoEl.muted = !soundEnabled;
+    muteBtn.querySelector('span').textContent = soundEnabled ? '🔊' : '🔇';
+  });
+
+  const likeBtn = item.querySelector('.shorts-like-btn');
+  likeBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (!currentUser) {
+      openAuthModal('login');
+      return;
+    }
+    likeBtn.disabled = true;
+    await toggleLike(video.id);
+    const nowLiked = isLikedByMe(video.id);
+    likeBtn.classList.toggle('liked', nowLiked);
+    likeBtn.querySelector('span:first-child').textContent = nowLiked ? '❤️' : '🤍';
+    likeBtn.querySelector('.shorts-action-count').textContent = getLikeCount(video.id);
+    likeBtn.disabled = false;
+  });
+
+  const commentBtn = item.querySelector('.shorts-comment-btn');
+  commentBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    videoEl.pause();
+    openPlayer(video);
+  });
+
+  return item;
+}
+
+function setupShortsObserver() {
+  const container = videoGrid;
+  const items = container.querySelectorAll('.shorts-item');
+  if (!items.length) return;
+
+  shortsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const videoEl = entry.target.querySelector('.shorts-video');
+      if (!videoEl) return;
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+        videoEl.muted = !soundEnabled;
+        videoEl.play().catch(() => {});
+      } else {
+        videoEl.pause();
+      }
+    });
+  }, { root: container, threshold: [0, 0.6, 1] });
+
+  items.forEach(item => shortsObserver.observe(item));
 }
 
 function openPlayer(video) {
@@ -616,15 +735,7 @@ function updateLikeButton(videoId) {
   likeBtn.title = currentUser ? '' : 'برای لایک کردن وارد شوید';
 }
 
-document.getElementById('likeBtn').addEventListener('click', async () => {
-  if (!currentUser || !currentPlayingId) {
-    if (!currentUser) openAuthModal('login');
-    return;
-  }
-  const videoId = currentPlayingId;
-  const likeBtn = document.getElementById('likeBtn');
-  likeBtn.disabled = true;
-
+async function toggleLike(videoId) {
   try {
     if (isLikedByMe(videoId)) {
       const { error } = await supabaseClient.from('likes')
@@ -638,12 +749,24 @@ document.getElementById('likeBtn').addEventListener('click', async () => {
       if (!likesByVideo[videoId]) likesByVideo[videoId] = new Set();
       likesByVideo[videoId].add(currentUid);
     }
-    updateLikeButton(videoId);
+    return true;
   } catch (err) {
     console.error('خطا در لایک:', err);
-  } finally {
-    likeBtn.disabled = !currentUser;
+    return false;
   }
+}
+
+document.getElementById('likeBtn').addEventListener('click', async () => {
+  if (!currentUser || !currentPlayingId) {
+    if (!currentUser) openAuthModal('login');
+    return;
+  }
+  const videoId = currentPlayingId;
+  const likeBtn = document.getElementById('likeBtn');
+  likeBtn.disabled = true;
+  await toggleLike(videoId);
+  updateLikeButton(videoId);
+  likeBtn.disabled = !currentUser;
 });
 
 async function loadComments(videoId) {
@@ -701,6 +824,9 @@ async function deleteComment(commentId) {
     const { error } = await supabaseClient.from('comments').delete().eq('id', commentId);
     if (error) throw error;
     currentVideoComments = currentVideoComments.filter(c => c.id !== commentId);
+    if (currentPlayingId && commentCounts[currentPlayingId]) {
+      commentCounts[currentPlayingId] = Math.max(0, commentCounts[currentPlayingId] - 1);
+    }
     document.getElementById('commentCount').textContent = currentVideoComments.length;
     renderComments();
   } catch (err) {
@@ -732,6 +858,7 @@ document.getElementById('commentForm').addEventListener('submit', async (e) => {
 
     if (data && data[0]) {
       currentVideoComments.unshift(data[0]);
+      commentCounts[currentPlayingId] = (commentCounts[currentPlayingId] || 0) + 1;
       document.getElementById('commentCount').textContent = currentVideoComments.length;
       renderComments();
     }
@@ -808,10 +935,16 @@ function closeModal(name) {
   if (name === 'video') {
     videoModal.hidden = true;
     const player = document.getElementById('modalVideo');
+    const wasId = currentPlayingId;
     player.pause();
     player.removeAttribute('src');
     player.load();
     currentPlayingId = null;
+
+    if (currentCategory === 'shorts' && wasId) {
+      const feedVideo = document.querySelector(`.shorts-item[data-id="${wasId}"] .shorts-video`);
+      if (feedVideo) feedVideo.play().catch(() => {});
+    }
   }
   document.body.style.overflow = '';
 }
@@ -841,7 +974,10 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
   filterAndRender();
 });
 
-setInterval(loadVideos, 15000);
+setInterval(() => {
+  if (currentCategory === 'shorts') return;
+  loadVideos();
+}, 15000);
 
 async function init() {
   try {
