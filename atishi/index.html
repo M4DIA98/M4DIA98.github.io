@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <title>آتیشی 🔥</title>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -61,6 +61,21 @@ body::after{background:rgba(255,180,0,.12);bottom:-140px;left:-100px;animation-d
 .chat-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .chat-header h2{margin:0;font-size:1.15rem}
 .mobile-menu-btn{display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
+.room-tabs{
+  display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0;
+}
+.room-tabs::-webkit-scrollbar{display:none}
+.room-tab{
+  flex-shrink:0;border:1px solid var(--border);background:rgba(255,255,255,.04);
+  color:var(--muted);border-radius:20px;padding:7px 12px;font:inherit;font-size:12px;
+  font-weight:600;cursor:pointer;white-space:nowrap;transition:.2s;
+}
+.room-tab:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+.room-tab.active{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border-color:transparent;
+}
 
 .messages{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
 .message{display:flex;gap:8px;align-items:flex-end;max-width:100%}
@@ -118,16 +133,82 @@ body::after{background:rgba(255,180,0,.12);bottom:-140px;left:-100px;animation-d
 .banned-screen{position:fixed;inset:0;background:#0b0b0f;z-index:4000;display:none;flex-direction:column;justify-content:center;align-items:center;gap:12px;text-align:center;padding:24px}
 .banned-screen.show{display:flex}
 
+.sidebar-close-btn{display:none}
+
 @media (max-width:860px){
-  .app{grid-template-columns:1fr;width:100vw;height:100%;gap:0;border-radius:0}
-  .sidebar{position:fixed;top:0;right:0;bottom:0;width:min(300px,85vw);z-index:200;transform:translateX(110%);transition:transform .3s ease;border-radius:0;border:none}
-  .sidebar.open{transform:translateX(0)}
-  .chat{border-radius:0;border:none;height:100%}
-  .mobile-menu-btn{display:block}
-  .bubble{max-width:85%}
+  html,body{height:100%;height:100dvh;overflow:hidden}
+  .app{
+    grid-template-columns:1fr;
+    width:100vw;
+    height:100%;
+    height:100dvh;
+    gap:0;
+    border-radius:0;
+  }
+  .sidebar{
+    position:fixed;
+    top:0;
+    right:0;
+    bottom:0;
+    width:min(320px,88vw);
+    max-width:100%;
+    z-index:300;
+    transform:translateX(105%);
+    transition:transform .28s ease;
+    border-radius:0;
+    border:none;
+    box-shadow:none;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding-top:max(14px, env(safe-area-inset-top));
+    padding-bottom:max(14px, env(safe-area-inset-bottom));
+  }
+  .sidebar.open{transform:translateX(0);box-shadow:-8px 0 30px rgba(0,0,0,.45)}
+  .chat{
+    border-radius:0;
+    border:none;
+    height:100%;
+    height:100dvh;
+    min-height:0;
+  }
+  .chat-header{padding:10px 12px;padding-top:max(10px, env(safe-area-inset-top))}
+  .composer{padding-bottom:max(10px, env(safe-area-inset-bottom))}
+  .mobile-menu-btn{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.06)}
+  .bubble{max-width:88%}
   .msg-actions{opacity:1}
-  .overlay-sidebar{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;display:none}
+  .overlay-sidebar{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:250;
+    display:none;
+    touch-action:none;
+  }
   .overlay-sidebar.show{display:block}
+  .sidebar-close-btn{
+    display:grid;
+    place-items:center;
+    position:absolute;
+    top:12px;
+    left:12px;
+    width:36px;
+    height:36px;
+    border:none;
+    border-radius:10px;
+    background:#242735;
+    color:#fff;
+    font-size:18px;
+    cursor:pointer;
+    z-index:5;
+  }
+  .brand{padding-left:40px}
+  .profile-card{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .admin-panel{max-height:none}
+  .picker-panel{max-height:min(240px,40vh);bottom:70px}
+  .form{padding:6px 8px}
+  .media-btn{width:38px;height:38px;font-size:15px}
+  .send{width:40px;height:40px;border-radius:12px}
+  .messages{padding:10px 12px}
 }
 </style>
 </head>
@@ -152,6 +233,7 @@ body::after{background:rgba(255,180,0,.12);bottom:-140px;left:-100px;animation-d
 <div class="overlay-sidebar" id="sidebarOverlay"></div>
 <div class="app">
   <aside class="sidebar" id="sidebar">
+    <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="بستن">✕</button>
     <div class="brand">
       <div class="logo">🔥</div>
       <div><h2 style="margin:0;font-size:1.2rem">آتیشی</h2><small style="color:var(--muted)">چت‌روم زنده فارسی</small></div>
@@ -229,10 +311,19 @@ body::after{background:rgba(255,180,0,.12);bottom:-140px;left:-100px;animation-d
     <div class="chat-header">
       <div style="display:flex;align-items:center;gap:10px">
         <button class="mobile-menu-btn" id="menuBtn">☰</button>
-        <div><h2>🔥 آتیشی</h2><small style="color:var(--muted)">گفتگوی عمومی</small></div>
+        <div>
+          <h2 id="roomTitle">🔥 آتیشی</h2>
+          <small id="roomSubtitle" style="color:var(--muted)">گفتگوی عمومی</small>
+        </div>
       </div>
       <div id="activeChallengeInfo" style="font-size:11px;color:#93c5fd"></div>
       <div id="activeEventBadge" style="font-size:11px;color:#fbbf24"></div>
+    </div>
+    <div class="room-tabs" id="roomTabs">
+      <button type="button" class="room-tab active" data-room="public">💬 عمومی</button>
+      <button type="button" class="room-tab" data-room="game">🎮 گیم</button>
+      <button type="button" class="room-tab" data-room="movie">🎬 فیلم و سریال</button>
+      <button type="button" class="room-tab" data-room="minecraft">⛏️ آترو سیتی</button>
     </div>
     <section id="messages" class="messages"></section>
     <div class="composer">
@@ -275,9 +366,22 @@ const eventOverlay=document.getElementById('eventOverlay'),eventAudio=document.g
 const bannedScreen=document.getElementById('bannedScreen'),sidebar=document.getElementById('sidebar'),sidebarOverlay=document.getElementById('sidebarOverlay')
 
 let currentUser=null,myUsername='',myRank='member',replyToId=null,activeChallenge=null,activeEvent='none',eventTimer=null
+let currentRoom='public'
+const ROOMS={
+  public:{title:'🔥 آتیشی',sub:'گفتگوی عمومی'},
+  game:{title:'🎮 گیم',sub:'بحث بازی و گیمینگ'},
+  movie:{title:'🎬 فیلم و سریال',sub:'بحث فیلم، سریال و انیمه'},
+  minecraft:{title:'⛏️ آترو سیتی',sub:'سرور ماینکرفتی آترو سیتی'}
+}
 const messageCache=new Map(); let stickersCache=[],customEmojisCache=[]
 const DEFAULT_EMOJIS=['😀','😂','🤣','😊','😍','🥰','😘','😎','🤩','🥳','😭','😤','😡','🤯','😱','🥺','😢','😴','🤔','👍','👎','👏','🙌','🤝','✌️','🤞','🤟','❤️','🧡','💛','💚','💙','💜','🖤','💔','🔥','✨','⭐','💯','🎉','🎊','🏆','🎁','🍕','🍔','🍩','☕','🍺','🎂','🐶','🐱','🦁','🐼','🦊','🌸','🌹','🌈','☀️','🌙','⚡','❄️']
 
+/* رنک‌ها: member | vip | mod | admin
+   member/vip : چت عادی
+   mod        : حذف پیام، اخطار، بن، چالش، استیکر/ایموجی، پیام سیستم
+   admin      : همه چیز + ایونت، پاکسازی، ویرایش کاربر، دادن رنک
+   ایمیل admin@atishi.ir همیشه full access
+*/
 const RANK_LABELS={member:'عضو',vip:'VIP',mod:'مود',admin:'ادمین'}
 const RANK_PERMS={
   member:[],
@@ -292,8 +396,27 @@ function hasPerm(perm){
 function isStaff(){ return hasPerm('delete_msg') }
 function isFullAdmin(){ return hasPerm('set_rank') }
 
-document.getElementById('menuBtn').onclick=()=>{sidebar.classList.add('open');sidebarOverlay.classList.add('show')}
-sidebarOverlay.onclick=()=>{sidebar.classList.remove('open');sidebarOverlay.classList.remove('show')}
+function openSidebar(){
+  sidebar.classList.add('open')
+  sidebarOverlay.classList.add('show')
+  document.body.style.overflow='hidden'
+}
+function closeSidebar(){
+  sidebar.classList.remove('open')
+  sidebarOverlay.classList.remove('show')
+  document.body.style.overflow=''
+}
+document.getElementById('menuBtn').onclick=(e)=>{e.preventDefault();e.stopPropagation();openSidebar()}
+document.getElementById('sidebarCloseBtn').onclick=(e)=>{e.preventDefault();e.stopPropagation();closeSidebar()}
+sidebarOverlay.addEventListener('click',(e)=>{e.preventDefault();closeSidebar()})
+// کلیک داخل سایدبار نباید پنل را ببندد
+sidebar.addEventListener('click',(e)=>e.stopPropagation())
+sidebar.addEventListener('touchstart',(e)=>e.stopPropagation(),{passive:true})
+// جلوگیری از بسته شدن موقع فوکوس روی اینپوت‌ها
+sidebar.querySelectorAll('input,textarea,select,button').forEach(el=>{
+  el.addEventListener('touchstart',(e)=>e.stopPropagation(),{passive:true})
+  el.addEventListener('click',(e)=>e.stopPropagation())
+})
 
 async function updateAuthUI(){
   const {data:{session}}=await supabase.auth.getSession()
@@ -309,6 +432,7 @@ async function updateAuthUI(){
 await updateAuthUI()
 
 function updateAdminSectionsVisibility(){
+  // مخفی کردن بخش‌هایی که دسترسی نداره
   const map=[
     ['createChallenge','challenge'],['endChallenge','challenge'],
     ['sendSysMsg','sysmsg'],
@@ -323,6 +447,7 @@ function updateAdminSectionsVisibility(){
     const el=document.getElementById(id)
     if(el) el.style.display = hasPerm(perm) ? '' : 'none'
   })
+  // کل سکشن رنک فقط برای full admin
   const rankSec=document.getElementById('rankSection')
   if(rankSec) rankSec.style.display = isFullAdmin() ? '' : 'none'
 }
@@ -351,11 +476,13 @@ async function loadMyProfile(){
     avatarPreview.src=data.avatar||'https://api.dicebear.com/9.x/thumbs/svg?seed='+data.username
     myUsername=data.username
     myRank=data.rank||'member'
+    // اگر ایمیل ادمین اصلی است، رنک admin بده
     if(currentUser.email===ADMIN_EMAIL && myRank!=='admin'){
       await supabase.from('profiles').update({rank:'admin'}).eq('owner',currentUser.id)
       myRank='admin'
     }
   }
+}
 }
 document.getElementById('saveProfile').onclick=async()=>{
   if(!currentUser)return alert('اول وارد شو')
@@ -411,7 +538,7 @@ function buildStickerPicker(){
   stickerPicker.querySelectorAll('img[data-url]').forEach(img=>{
     img.onclick=async()=>{
       if(!myUsername)return alert('اول پروفایل بساز')
-      await supabase.from('messages').insert({username:myUsername,message:'',avatar:avatarInput.value.trim(),media_url:img.dataset.url,media_type:'sticker',reply_to:replyToId})
+      await supabase.from('messages').insert({username:myUsername,message:'',avatar:avatarInput.value.trim(),media_url:img.dataset.url,media_type:'sticker',reply_to:replyToId,room:currentRoom})
       replyToId=null;replyBar.classList.remove('show');stickerPicker.classList.remove('show')
     }
   })
@@ -440,7 +567,7 @@ fileInput.onchange=async()=>{
   if(file.type.startsWith('image/'))mediaType='image'
   else if(file.type.startsWith('video/'))mediaType='video'
   else if(file.type.startsWith('audio/'))mediaType='audio'
-  await supabase.from('messages').insert({username:myUsername,message:textInput.value.trim()||'',avatar:avatarInput.value.trim(),media_url:urlData.publicUrl,media_type:mediaType,reply_to:replyToId})
+  await supabase.from('messages').insert({username:myUsername,message:textInput.value.trim()||'',avatar:avatarInput.value.trim(),media_url:urlData.publicUrl,media_type:mediaType,reply_to:replyToId,room:currentRoom})
   textInput.value='';fileInput.value='';replyToId=null;replyBar.classList.remove('show')
 }
 
@@ -465,12 +592,12 @@ async function checkChallengeAnswer(text){
   if(!activeChallenge?.is_active)return
   if(text.trim().toLowerCase()===activeChallenge.answer.trim().toLowerCase()){
     await supabase.from('challenges').update({is_active:false,winner_username:myUsername}).eq('id',activeChallenge.id)
-    await supabase.from('messages').insert({username:'🔥 سیستم',message:`🏆 تبریک!\n@${myUsername} برنده چالش شد!\n❓ ${activeChallenge.question}\n🎁 ${activeChallenge.prize}`,is_system:true})
+    await supabase.from('messages').insert({username:'🔥 سیستم',message:`🏆 تبریک!\n@${myUsername} برنده چالش شد!\n❓ ${activeChallenge.question}\n🎁 ${activeChallenge.prize}`,is_system:true,room:currentRoom})
     activeChallenge=null;document.getElementById('activeChallengeInfo').textContent=''
   }
 }
 
-function isAdmin(){return isStaff()}
+function isAdmin(){return isStaff()} // سازگاری با کد قبلی – حالا بر اساس رنک
 
 document.getElementById('createChallenge').onclick=async()=>{
   if(!isAdmin())return
@@ -478,18 +605,18 @@ document.getElementById('createChallenge').onclick=async()=>{
   if(!q||!a||!p)return alert('همه فیلدها لازم است')
   await supabase.from('challenges').update({is_active:false}).eq('is_active',true)
   const {data:ch}=await supabase.from('challenges').insert({question:q,answer:a,prize:p,created_by:myUsername||'ادمین',is_active:true}).select().single()
-  const {data:msg}=await supabase.from('messages').insert({username:'🔥 سیستم',message:`🎯 چالش جدید!\n\n❓ ${q}\n\n🎁 جایزه: ${p}\n\nهر کی جواب درست بفرسته برنده می‌شه!`,is_challenge:true,challenge_id:ch.id,is_system:true}).select().single()
+  const {data:msg}=await supabase.from('messages').insert({username:'🔥 سیستم',message:`🎯 چالش جدید!\n\n❓ ${q}\n\n🎁 جایزه: ${p}\n\nهر کی جواب درست بفرسته برنده می‌شه!`,is_challenge:true,challenge_id:ch.id,is_system:true,room:currentRoom}).select().single()
   if(msg)await supabase.from('challenges').update({message_id:msg.id}).eq('id',ch.id)
   document.getElementById('chQuestion').value='';document.getElementById('chAnswer').value='';document.getElementById('chPrize').value=''
   await loadActiveChallenge();alert('چالش ایجاد شد')
 }
-document.getElementById('endChallenge').onclick=async()=>{if(!isAdmin())return;await supabase.from('challenges').update({is_active:false}).eq('is_active',true);await supabase.from('messages').insert({username:'🔥 سیستم',message:'چالش فعلی به پایان رسید.',is_system:true});await loadActiveChallenge()}
-document.getElementById('sendSysMsg').onclick=async()=>{if(!isAdmin())return;const t=document.getElementById('sysMsg').value.trim();if(!t)return;await supabase.from('messages').insert({username:'🔥 سیستم',message:t,is_system:true});document.getElementById('sysMsg').value=''}
+document.getElementById('endChallenge').onclick=async()=>{if(!isAdmin())return;await supabase.from('challenges').update({is_active:false}).eq('is_active',true);await supabase.from('messages').insert({username:'🔥 سیستم',message:'چالش فعلی به پایان رسید.',is_system:true,room:currentRoom});await loadActiveChallenge()}
+document.getElementById('sendSysMsg').onclick=async()=>{if(!isAdmin())return;const t=document.getElementById('sysMsg').value.trim();if(!t)return;await supabase.from('messages').insert({username:'🔥 سیستم',message:t,is_system:true,room:currentRoom});document.getElementById('sysMsg').value=''}
 document.getElementById('warnUser').onclick=async()=>{
   if(!isAdmin())return;const u=document.getElementById('targetUser').value.trim(),r=document.getElementById('warnReason').value.trim()||'بدون دلیل'
   if(!u)return alert('نام کاربری لازم است')
   await supabase.from('warnings').insert({username:u,reason:r,warned_by:myUsername||'ادمین'})
-  await supabase.from('messages').insert({username:'🔥 سیستم',message:`⚠️ اخطار!\nکاربر @${u} اخطار دریافت کرد.\nدلیل: ${r}`,is_system:true});alert('اخطار ثبت شد')
+  await supabase.from('messages').insert({username:'🔥 سیستم',message:`⚠️ اخطار!\nکاربر @${u} اخطار دریافت کرد.\nدلیل: ${r}`,is_system:true,room:currentRoom});alert('اخطار ثبت شد')
 }
 document.getElementById('banUser').onclick=async()=>{
   if(!isAdmin())return;const u=document.getElementById('targetUser').value.trim(),r=document.getElementById('warnReason').value.trim()||'بدون دلیل'
@@ -497,13 +624,13 @@ document.getElementById('banUser').onclick=async()=>{
   await supabase.from('bans').update({is_active:false}).eq('username',u)
   await supabase.from('bans').insert({username:u,reason:r,banned_by:myUsername||'ادمین',is_active:true})
   await supabase.from('profiles').update({is_banned:true,ban_reason:r}).eq('username',u)
-  await supabase.from('messages').insert({username:'🔥 سیستم',message:`🚫 کاربر @${u} بن شد.\nدلیل: ${r}`,is_system:true});alert('کاربر بن شد')
+  await supabase.from('messages').insert({username:'🔥 سیستم',message:`🚫 کاربر @${u} بن شد.\nدلیل: ${r}`,is_system:true,room:currentRoom});alert('کاربر بن شد')
 }
 document.getElementById('unbanUser').onclick=async()=>{
   if(!isAdmin())return;const u=document.getElementById('targetUser').value.trim();if(!u)return
   await supabase.from('bans').update({is_active:false}).eq('username',u)
   await supabase.from('profiles').update({is_banned:false,ban_reason:''}).eq('username',u)
-  await supabase.from('messages').insert({username:'🔥 سیستم',message:`✅ کاربر @${u} از بن خارج شد.`,is_system:true});alert('آنبن شد')
+  await supabase.from('messages').insert({username:'🔥 سیستم',message:`✅ کاربر @${u} از بن خارج شد.`,is_system:true,room:currentRoom});alert('آنبن شد')
 }
 document.getElementById('editUserBtn').onclick=async()=>{
   if(!isAdmin())return;const u=document.getElementById('editUsername').value.trim();if(!u)return
@@ -512,27 +639,27 @@ document.getElementById('editUserBtn').onclick=async()=>{
   if(!Object.keys(payload).length)return alert('حداقل یک فیلد پر کن')
   const {error}=await supabase.from('profiles').update(payload).eq('username',u)
   if(error)return alert(error.message)
-  await supabase.from('messages').insert({username:'🔥 سیستم',message:`✏️ اطلاعات کاربر @${u} توسط ادمین تغییر کرد.`,is_system:true});alert('تغییرات اعمال شد')
+  await supabase.from('messages').insert({username:'🔥 سیستم',message:`✏️ اطلاعات کاربر @${u} توسط ادمین تغییر کرد.`,is_system:true,room:currentRoom});alert('تغییرات اعمال شد')
 }
 document.getElementById('startEvent').onclick=async()=>{
   if(!isAdmin())return;const ev=document.getElementById('eventSelect').value,dur=parseInt(document.getElementById('eventDuration').value)||0
   await supabase.from('app_settings').upsert({key:'active_event',value:ev,updated_at:new Date().toISOString()})
   applyEvent(ev)
   const names={fall:'پاییز',spring:'بهار',hell:'جهنم',winter:'زمستون',party:'پارتی',none:'بدون ایونت'}
-  await supabase.from('messages').insert({username:'🔥 سیستم',message:`🌦 ایونت «${names[ev]||ev}» شروع شد${dur?` (به مدت ${dur} دقیقه)`:''}!`,is_system:true})
+  await supabase.from('messages').insert({username:'🔥 سیستم',message:`🌦 ایونت «${names[ev]||ev}» شروع شد${dur?` (به مدت ${dur} دقیقه)`:''}!`,is_system:true,room:currentRoom})
   if(eventTimer)clearTimeout(eventTimer)
-  if(dur>0){eventTimer=setTimeout(async()=>{await supabase.from('app_settings').upsert({key:'active_event',value:'none'});applyEvent('none');await supabase.from('messages').insert({username:'🔥 سیستم',message:'ایونت به پایان رسید.',is_system:true})},dur*60*1000)}
+  if(dur>0){eventTimer=setTimeout(async()=>{await supabase.from('app_settings').upsert({key:'active_event',value:'none'});applyEvent('none');await supabase.from('messages').insert({username:'🔥 سیستم',message:'ایونت به پایان رسید.',is_system:true,room:currentRoom})},dur*60*1000)}
 }
 document.getElementById('stopEvent').onclick=async()=>{
   if(!isAdmin())return;await supabase.from('app_settings').upsert({key:'active_event',value:'none'});applyEvent('none')
-  if(eventTimer)clearTimeout(eventTimer);await supabase.from('messages').insert({username:'🔥 سیستم',message:'ایونت متوقف شد.',is_system:true})
+  if(eventTimer)clearTimeout(eventTimer);await supabase.from('messages').insert({username:'🔥 سیستم',message:'ایونت متوقف شد.',is_system:true,room:currentRoom})
 }
 document.getElementById('clearMsgs').onclick=async()=>{
   if(!isAdmin())return;const n=parseInt(document.getElementById('clearCount').value);if(!n||n<1)return alert('تعداد معتبر وارد کن')
-  const {data:old}=await supabase.from('messages').select('id').order('created_at',{ascending:true}).limit(n)
+  const {data:old}=await supabase.from('messages').select('id').eq('room',currentRoom).order('created_at',{ascending:true}).limit(n)
   if(!old?.length)return alert('پیامی برای پاک کردن نیست')
   const ids=old.map(m=>m.id);await supabase.from('messages').delete().in('id',ids)
-  await supabase.from('messages').insert({username:'🔥 سیستم',message:`🧹 ${ids.length} پیام پاکسازی شد.`,is_system:true});alert(`${ids.length} پیام پاک شد`)
+  await supabase.from('messages').insert({username:'🔥 سیستم',message:`🧹 ${ids.length} پیام پاکسازی شد.`,is_system:true,room:currentRoom});alert(`${ids.length} پیام پاک شد`)
 }
 document.getElementById('addSticker').onclick=async()=>{
   if(!isAdmin())return;const pack=document.getElementById('stickerPackName').value.trim(),name=document.getElementById('stickerName').value.trim(),url=document.getElementById('stickerUrl').value.trim()
@@ -558,7 +685,8 @@ document.getElementById('setRankBtn').onclick=async()=>{
   await supabase.from('messages').insert({
     username:'🔥 سیستم',
     message:`👑 رنک کاربر @${u} به «${RANK_LABELS[rank]||rank}» تغییر کرد.`,
-    is_system:true
+    is_system:true,
+    room:currentRoom
   })
   alert(`رنک ${u} به ${RANK_LABELS[rank]} تغییر کرد`)
   document.getElementById('rankTargetUser').value=''
@@ -627,10 +755,48 @@ async function refreshReactions(messageId){
   el.querySelectorAll('.reaction-btn').forEach(b=>b.onclick=()=>toggleReaction(messageId,b.dataset.emoji))
 }
 
+async function loadRoomMessages(){
+  messagesEl.innerHTML=''
+  messageCache.clear()
+  replyToId=null
+  replyBar.classList.remove('show')
+  const {data:oldMessages}=await supabase
+    .from('messages')
+    .select('*')
+    .eq('room', currentRoom)
+    .order('created_at',{ascending:false})
+    .limit(15)
+  const list=(oldMessages||[]).reverse()
+  for(const m of list) await addMessage(m)
+  messagesEl.scrollTop=messagesEl.scrollHeight
+}
+
+function switchRoom(room){
+  if(!ROOMS[room]||room===currentRoom) return
+  currentRoom=room
+  document.querySelectorAll('.room-tab').forEach(t=>t.classList.toggle('active',t.dataset.room===room))
+  document.getElementById('roomTitle').textContent=ROOMS[room].title
+  document.getElementById('roomSubtitle').textContent=ROOMS[room].sub
+  loadRoomMessages()
+}
+
+document.getElementById('roomTabs').addEventListener('click',e=>{
+  const btn=e.target.closest('.room-tab')
+  if(btn) switchRoom(btn.dataset.room)
+})
+
+await loadRoomMessages()
+
 supabase.channel('chat-room')
-  .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>addMessage(p.new))
-  .on('postgres_changes',{event:'DELETE',schema:'public',table:'messages'},p=>{const el=document.querySelector(`[data-msg-id="${p.old.id}"]`);if(el)el.remove();messageCache.delete(p.old.id)})
-  .on('postgres_changes',{event:'*',schema:'public',table:'reactions'},p=>{const mid=p.new?.message_id||p.old?.message_id;if(mid)refreshReactions(mid)})
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>{
+    if((p.new.room||'public')===currentRoom) addMessage(p.new)
+  })
+  .on('postgres_changes',{event:'DELETE',schema:'public',table:'messages'},p=>{
+    const el=document.querySelector(`[data-msg-id="${p.old.id}"]`);if(el)el.remove();messageCache.delete(p.old.id)
+  })
+  .on('postgres_changes',{event:'*',schema:'public',table:'reactions'},p=>{
+    const mid=p.new?.message_id||p.old?.message_id;if(mid)refreshReactions(mid)
+  })
   .on('postgres_changes',{event:'*',schema:'public',table:'challenges'},()=>loadActiveChallenge())
   .on('postgres_changes',{event:'*',schema:'public',table:'app_settings'},()=>loadActiveEvent())
   .on('postgres_changes',{event:'*',schema:'public',table:'stickers'},()=>loadStickersAndEmojis())
@@ -641,7 +807,10 @@ supabase.channel('chat-room')
 form.addEventListener('submit',async e=>{
   e.preventDefault();if(!myUsername)return alert('اول پروفایل بساز')
   const text=textInput.value.trim();if(!text)return
-  await supabase.from('messages').insert({username:myUsername,message:text,avatar:avatarInput.value.trim(),reply_to:replyToId})
+  await supabase.from('messages').insert({
+    username:myUsername,message:text,avatar:avatarInput.value.trim(),
+    reply_to:replyToId, room:currentRoom
+  })
   await checkChallengeAnswer(text)
   textInput.value='';replyToId=null;replyBar.classList.remove('show');emojiPicker.classList.remove('show');stickerPicker.classList.remove('show')
 })
